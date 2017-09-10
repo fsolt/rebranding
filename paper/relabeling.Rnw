@@ -1,0 +1,70 @@
+\documentclass[12pt]{article}
+%\usepackage{fullpage}
+
+\usepackage{graphicx}        % Enable graphics commands
+\usepackage{lscape}		% Enable landscape with \begin{landscape} until \end{landscape}
+\usepackage{natbib}			% Enable citation commands \citep{}, \citet{}, etc.
+\bibpunct{(}{)}{;}{a}{}{,}		% Formatting for in-text citations
+\usepackage{setspace}		% Enable double-spacing with \begin{spacing}{2} until \end{spacing}.
+\usepackage[utf8]{inputenc} 	% Enable utf8 characters, i.e., accents without coding--just type them in.
+\usepackage[english]{babel}	% English hyphenation and alphabetization.  Other languages available.
+\usepackage{dcolumn}        % For decimal-aligned stargazer/texreg output.
+\usepackage[colorlinks=true, urlcolor=blue, citecolor=black, linkcolor=black]{hyperref} % Include hyperlinks with the \url and \href commands.
+\setlength{\tabcolsep}{1pt}	% Make tables slightly narrower by reducing space between columns.
+\usepackage{afterpage}
+\usepackage{hanging}
+\usepackage{fullpage}
+
+\usepackage{ntheorem}
+\newtheorem{hyp}{Hypothesis} 
+
+\renewcommand\floatpagefraction{.9}	% These commands allow larger tables and graphics to fit
+\renewcommand\topfraction{.9}		% on a page when default settings would complain.
+\renewcommand\bottomfraction{.9}
+\renewcommand\textfraction{.1}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+
+\newcommand{\R}{\textsf{R}~}        %This creates the command \R to typeset the name R correctly.
+\mathchardef\mhyphen="2D            %Math-mode hyphen
+% This creates a command for footnotes without markers:
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
+\begin{document}
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+concordance=TRUE,
+cache=FALSE,
+message=FALSE
+)
+@
+
+
+\title{Party Relabeling}
+\author{
+    Mi-Son Kim%\thanks{Mi-son Kim is Assistant Professor of Political Science at the University of Texas, Rio Grande Valley.  She studies comparative political parties and electoral systems with a regional interest in East Asia. Her research agenda focuses on the strategic behavior of political parties in their interaction with institutional conditions, public opinion, and political culture.  She studies how these patterns of strategic behavior affect governance and policy-making processes.  Her dissertation examines the causes and consequences of party relabeling and focuses on four cases in depth: South Korea, France, Taiwan, and the United States.}\\
+    \href{mailto:mison.kim@utrgv.edu}{mison.kim@utrgv.edu}
+    \and
+    Frederick Solt%\thanks{Frederick Solt is Associate Professor of Political Science at the University of Iowa.  His primary research interests are in comparative politics and focus on the consequences of economic inequality for political attitudes and behavior. His work on this topic has appeared in the \emph{American Journal of Political Science}, the \emph{Journal of Politics}, the \emph{British Journal of Political Science, and other journals}. To facilitate this research, he created and maintains the Standardized World Income Inequality Database (SWIID), which provides the most comparable data available on income inequality for countries around the world over the past half-century.}\\
+    \href{mailto:frederick-solt@uiowa.edu}{frederick-solt@uiowa.edu}
+}
+\date{}				
+\maketitle
+
+\begin{abstract}
+\blfootnote{Complete replication materials for this article are available at \url{https://dataverse.harvard.edu/dataverse/fsolt}.}
+\end{abstract}
+
+\newpage
+\begin{spacing}{2}
+
+
+\end{document}

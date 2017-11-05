@@ -29,6 +29,7 @@ archive <- map_df(countries, function(country) {
     last_two <- read_html(country_page) %>%
         html_nodes("table:nth-child(6) td") %>%
         html_text()
+    last_two_years <- last_two[2:3]
     
     cat("Processing", country, "archives \n")
     archive_links <- read_html(country_page) %>% 
@@ -36,7 +37,7 @@ archive <- map_df(countries, function(country) {
         html_attr("href") %>% 
         paste0("http://www.parties-and-elections.eu/", .)
     
-    archive <- map_df(archive_links, function(a_link) {
+    archive_votes <- map_df(archive_links, function(a_link) {
         tab0 <- read_html(a_link) %>%
             html_nodes("td td div table:nth-child(3) td") %>%
             html_text()
@@ -57,14 +58,23 @@ archive <- map_df(countries, function(country) {
                                         as.numeric(vote_share %>% str_trim() %>% str_replace(",", ".")),
                                         0),
                    party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2")) # from rebranding_scrape, jic
-
+    })
+    
+    election_years <- archive_votes$year %>%
+        c(last_two_years) %>% 
+        str_replace_all("\\D", "") %>% 
+        unique()
+    
+    archive_changes <- map_df(archive_links, function(a_link) {    
         notes <- read_html(a_link) %>% 
             html_nodes("td td td div font") %>% 
             html_text() %>% 
-            gsub(x = ., ".*Abbreviations:\\W(.*)©.*", "\\1") %>% 
+            paste(collapse = "") %>% 
+            gsub(x = ., ".*Abbreviations:\\W(.*)(©|Wolfram).*", "\\1") %>% 
             gsub(x = ., "\\r\\n", "")
         if (country=="iceland") notes <- gsub(pattern="BF \\(([12])\\)", replacement="BF\\1", x=notes)
         if (country=="denmark") notes <- gsub(pattern="\\((since [0-9]{4})\\)", replacement="\\1", x=notes)
+        if (country=="ireland") notes <- gsub(pattern="\\(Family[^)]*\\)", replacement="", x=notes)
         # if (country=="italy" & (links2[i] %in% links3)) notes <- gsub(pattern="^(.*)\\*.*", replacement="\\1", x=notes)
         notes0 <- notes
         notes <- unlist(strsplit(notes, "\\)"))  
@@ -88,6 +98,7 @@ archive <- map_df(countries, function(country) {
             if(country=="norway") c_p <- gsub(pattern="\\( FMS\\)", replacement="(FMS, RV)", x=c_p) # kludge for Norway
             if(country=="sweden") c_p <- gsub(pattern="\\(KDS, KDS\\)", replacement="(KDS)", x=c_p) # kludge for Sweden
             c_p <- gsub("((\\b\\w+), \\2,)", "\\2,", x=c_p) # to delete repeated acronyms when name changes but acronym is retained		
+            c_p <- gsub(",\\)", ")", x=c_p)
             changed_parties <- paste(changed_parties, c_p, sep=" ") # put new and old acronyms together
             
             changed_parties <- gsub(pattern="(^(.*\\b) \\(.*)((?<!\\-)\\b\\2\\b(?!(\\-|\\+)))(.*)", replacement="\\1\\5", x=changed_parties, perl=TRUE) # this bit gets rid of an old acronym if current party name has same acronym
@@ -116,13 +127,12 @@ archive <- map_df(countries, function(country) {
             if(country=="estonia") changed_parties[which(changed_parties=="EPPL (EPL)")] <- "EPPL" # kludge for Estonia 
             if(country=="bulgaria") changed_parties[which(changed_parties=="BZNS-NP (BRSDP-O)")] <- "BZNS-NP (BZNS-NP/BRSDP-O)" # bug fix for Bulgaria 
             
-            change_years <- str_extract_all(notes, "([0-9]{4}|[0-9]{4}\\-[0-9]{4})")
+            change_years <- str_extract_all(notes, "([0-9]{4}\\-[0-9]{4}|[0-9]{4})")
             change_years <- change_years[1:length(change_years)-1] # because of leftover tail of string after splitting
             last_year <- lapply(change_years, function(x) gsub(pattern=".*\\-([0-9]{4})$","\\1", x)[length(x)])
             change_years <- lapply(change_years, function(x) gsub(pattern="\\-[0-9]{4}$","", x))
             
-            years2 <- unique(change_years)
-            last_change <- lapply(last_year, function(x) years2[which(years2==x)+1])
+            last_change <- lapply(last_year, function(x) election_years[which(election_years==x)+1])
             
             change_years <- lapply(change_years, function(x) paste(x, collapse=","))
             change_years <- lapply(change_years, function(x) gsub(pattern="^[0-9]{4},?","", x)) # first year of party isn't a *re-*branding
@@ -130,7 +140,11 @@ archive <- map_df(countries, function(country) {
             change_years <- lapply(change_years, function(x) gsub(pattern="^,","", x)) 
             change_years <- strsplit(as.character(change_years), ",")
             
-            changes <- cbind(party=rep(changed_parties, sapply(change_years, length)), year=unlist(change_years), change=1)
+            changes <- cbind(party=rep(changed_parties, sapply(change_years, length)), year=unlist(change_years), change=1) %>% 
+                as_tibble()
+        }
+        return(changes)
+    })
             
             c_data <- merge(as.data.frame(votes), as.data.frame(changes), by=c("party", "year"), all=TRUE)
             c_data$change <- as.numeric(c_data$change)

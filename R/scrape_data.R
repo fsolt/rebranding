@@ -54,7 +54,7 @@ archive <- map_df(countries, function(country) {
             arrange(party) %>%
             filter(!str_detect(vote_share, "^[A-Z]")) %>% # omit election if party ran in coalition
             mutate(vote_share = if_else(str_detect(vote_share, "\\d"), 
-                                        as.numeric(str_replace(vote_share, ",", ".")),
+                                        as.numeric(vote_share %>% str_trim() %>% str_replace(",", ".")),
                                         0),
                    party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2")) # from rebranding_scrape, jic
 

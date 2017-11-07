@@ -47,7 +47,8 @@ archive <- map_df(countries, function(country) {
         html_nodes("table:nth-child(6) td") %>%
         html_text() %>%
         str_trim() %>% 
-        str_subset("^\\d{4}$")
+        str_subset("^\\d{4}") %>% 
+        str_replace_all("\\s", "")
     
     last_two0 <- read_html(country_page) %>%
         html_nodes(xpath = "//table[@border = '1']") %>%

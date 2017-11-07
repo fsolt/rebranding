@@ -39,7 +39,7 @@ correct_for_alliances <- function(df, vote_variable) {
     return(df)
 }
 
-archive <- map_df(countries, function(country) {
+change_data <- map_df(countries, function(country) {
     cat("Processing", country, "\n")
     
     country_page <- paste0("http://www.parties-and-elections.eu/", country, ".html")

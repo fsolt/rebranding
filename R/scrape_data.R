@@ -25,13 +25,37 @@ first_row_to_names <- function(x) {
 }
 
 archive <- map_df(countries, function(country) {
-    country_page <- paste0("http://www.parties-and-elections.eu/", country, ".html")
-    last_two <- read_html(country_page) %>%
-        html_nodes("table:nth-child(6) td") %>%
-        html_text()
-    last_two_years <- last_two[2:3]
+    cat("Processing", country, "\n")
     
-    cat("Processing", country, "archives \n")
+    country_page <- paste0("http://www.parties-and-elections.eu/", country, ".html")
+    last_two_years <- read_html(country_page) %>%
+        html_nodes("table:nth-child(6) td") %>%
+        html_text() %>%
+        str_trim() %>% 
+        str_subset("^\\d{4}$")
+    
+    last_two0 <- read_html(country_page) %>%
+        html_nodes(xpath = "//table[@border = '1']") %>%
+        html_table() %>% 
+        first() %>% 
+        select(X2, X4, X6) %>% 
+        filter(str_detect(X2, "\\(")) %>% 
+        mutate(current = str_extract(X2, "(?<=\\()(.*)(?=\\))"),
+               old = str_extract(X2, "(?<![\\S])[-+/A-Z]{2,}(?![^]])"),
+               party = if_else(is.na(old), current, paste0(current, " (", old, ")")),
+               change = as.numeric(!is.na(old))) %>% 
+        select(X4, X6, party, change) 
+    names(last_two0)[1:2] <- last_two_years
+    last_two <- last_two0 %>%
+        gather(key = election, value = vote_share, -party, -change) %>% 
+        mutate(vote_share = as.numeric(vote_share %>% 
+                                           str_trim() %>% 
+                                           str_replace(",", ".") %>% 
+                                           str_replace("%", "")),
+               year = str_replace_all(election, "\\D", ""),
+               country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE)) %>% 
+        select(country, election, year, party, vote_share, change)
+    
     archive_links <- read_html(country_page) %>% 
         html_nodes(".bottom") %>% 
         html_attr("href") %>% 
@@ -58,7 +82,7 @@ archive <- map_df(countries, function(country) {
                                         as.numeric(vote_share %>% str_trim() %>% str_replace(",", ".")),
                                         0),
                    party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2"),
-                   year = str_replace_all(election, "\\D", "")) # from rebranding_scrape, jic
+                   year = str_replace_all(election, "\\D", "")) 
     })
     
     election_years <- archive_votes %>% 
@@ -148,7 +172,8 @@ archive <- map_df(countries, function(country) {
      
     c_data <- left_join(archive_votes, archive_changes, by = c("party", "year")) %>% 
          mutate(change = if_else(is.na(change), 0L, 1L),
-                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE))
+                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE)) %>% 
+        select(country, election, year, party, vote_share, change)
     
     return(c_data)
 })

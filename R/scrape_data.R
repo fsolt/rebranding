@@ -48,21 +48,22 @@ archive <- map_df(countries, function(country) {
             matrix(ncol = no_yrs + 2, byrow = TRUE) %>%
             as_tibble() %>%
             first_row_to_names() %>%
-            filter(percent == "%") %>%
+            filter(str_detect(percent, "%")) %>%
             filter(!(party == "Others" | party == "Turnout")) %>%
             select(-percent) %>%
-            gather(key = year, value = vote_share, -party) %>%
+            gather(key = election, value = vote_share, -party) %>%
             arrange(party) %>%
             filter(!str_detect(vote_share, "^[A-Z]")) %>% # omit election if party ran in coalition
             mutate(vote_share = if_else(str_detect(vote_share, "\\d"), 
                                         as.numeric(vote_share %>% str_trim() %>% str_replace(",", ".")),
                                         0),
-                   party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2")) # from rebranding_scrape, jic
+                   party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2"),
+                   year = str_replace_all(election, "\\D", "")) # from rebranding_scrape, jic
     })
     
-    election_years <- archive_votes$year %>%
+    election_years <- archive_votes %>% 
+        pull(year) %>%
         c(last_two_years) %>% 
-        str_replace_all("\\D", "") %>% 
         unique()
     
     archive_changes <- map_df(archive_links, function(a_link) {    
@@ -75,7 +76,6 @@ archive <- map_df(countries, function(country) {
         if (country=="iceland") notes <- gsub(pattern="BF \\(([12])\\)", replacement="BF\\1", x=notes)
         if (country=="denmark") notes <- gsub(pattern="\\((since [0-9]{4})\\)", replacement="\\1", x=notes)
         if (country=="ireland") notes <- gsub(pattern="\\(Family[^)]*\\)", replacement="", x=notes)
-        # if (country=="italy" & (links2[i] %in% links3)) notes <- gsub(pattern="^(.*)\\*.*", replacement="\\1", x=notes)
         notes0 <- notes
         notes <- unlist(strsplit(notes, "\\)"))  
         # the following is only lightly edited from rebranding_scrape.R (i.e., ooold school)
@@ -145,19 +145,10 @@ archive <- map_df(countries, function(country) {
         }
         return(changes)
     })
-            
-            c_data <- merge(as.data.frame(votes), as.data.frame(changes), by=c("party", "year"), all=TRUE)
-            c_data$change <- as.numeric(c_data$change)
-            c_data$change[is.na(c_data$change)] <- 0
-            c_data$country <- gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE)
-        } else { # if no rebranded parties . . .
-            c_data <- votes
-            c_data$change <- 0
-            c_data$country <- gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE)
-        }
-        c_data <- as_tibble(c_data)
-        return(c_data)
-    })
-
-    return(archive)
+     
+    c_data <- left_join(archive_votes, archive_changes, by = c("party", "year")) %>% 
+         mutate(change = if_else(is.na(change), 0L, 1L),
+                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE))
+    
+    return(c_data)
 })

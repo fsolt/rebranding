@@ -73,7 +73,10 @@ change_data <- map_df(countries, function(country) {
                year = str_replace_all(election, "\\D", ""),
                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE),
                recent = 1) %>% 
-        select(country, party, election, year, vote_share, change, recent)
+        select(country, party, election, year, vote_share, change, recent) %>% 
+        mutate(bridge_name = if_else(str_detect(party, "\\("), 
+                                     str_extract(party, "(?<=\\()(.*)(?=\\))"),
+                                     party))
     
     archive_links <- read_html(country_page) %>% 
         html_nodes(".bottom") %>% 
@@ -98,7 +101,7 @@ change_data <- map_df(countries, function(country) {
             arrange(party) %>%
             filter(!str_detect(vote_share, "^[A-Z]")) %>% # omit election if party ran in coalition
             mutate(vote_share = if_else(str_detect(vote_share, "\\d"), 
-                                        as.numeric(vote_share %>% str_trim() %>% str_replace(",", ".")),
+                                        suppressWarnings(vote_share %>% str_trim() %>% str_replace(",", ".") %>% as.numeric()),
                                         0),
                    party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2"),
                    year = str_replace_all(election, "\\D", "")) 
@@ -144,7 +147,9 @@ change_data <- map_df(countries, function(country) {
             c_p <- gsub(",\\)", ")", x=c_p)
             changed_parties <- paste(changed_parties, c_p, sep=" ") # put new and old acronyms together
             
-            changed_parties <- gsub(pattern="(^(.*\\b) \\(.*)((?<!\\-)\\b\\2\\b(?!(\\-|\\+)))(.*)", replacement="\\1\\5", x=changed_parties, perl=TRUE) # this bit gets rid of an old acronym if current party name has same acronym
+            # this bit gets rid of an old acronym if current party name has same acronym
+            changed_parties <- gsub(pattern="(^(.*\\b) \\(.*)((?<!\\-)\\b\\2\\b(?!(\\-|\\+)))(.*)",
+                                    replacement="\\1\\5", x=changed_parties, perl=TRUE) 
             changed_parties <- gsub(pattern="\\(, ", replacement="(", x=changed_parties)
             changed_parties <- gsub(pattern=" \\($", replacement="", x=changed_parties)
             changed_parties <- gsub(pattern=", ,", replacement=",", x=changed_parties)
@@ -191,11 +196,18 @@ change_data <- map_df(countries, function(country) {
      
     c_data <- left_join(archive_votes, archive_changes, by = c("party", "year")) %>% 
          mutate(change = if_else(is.na(change), 0L, 1L),
-                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE)) %>% 
+                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE) %>% 
+                    str_replace("kingdom", " Kingdom"),
+                bridge_name = str_extract(party, "^[^(\\s]*")) %>% 
+        # use bridge_name to generate a key to match parties from both last_two and c_data, then 
+        # create consolidated name in key, then merge consolidated name into both, then
+        # bind_rows as current
         select(country, party, election, year, vote_share, change) %>% 
         bind_rows(last_two) %>% 
         arrange(country, party, election) %>% 
         mutate(recent = if_else(is.na(recent), 0, recent))
+    
+
     
     return(c_data)
 })

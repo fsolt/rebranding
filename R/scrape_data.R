@@ -193,6 +193,15 @@ change_data <- map_df(countries, function(country) {
         }
         return(changes)
     })
+    
+    bridge <- archive_votes %>% 
+        transmute(bridge_name = str_extract(party, "^[^(\\s]*"),
+               archive_party = party) %>% 
+        distinct() %>% 
+        full_join(last_two %>% 
+                      transmute(bridge_name = bridge_name,
+                                l2_party = party) %>% 
+                      distinct(), by = "bridge_name")
      
     c_data <- left_join(archive_votes, archive_changes, by = c("party", "year")) %>% 
          mutate(change = if_else(is.na(change), 0L, 1L),

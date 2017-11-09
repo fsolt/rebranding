@@ -42,19 +42,22 @@ correct_for_alliances <- function(df, vote_variable) {
 change_data <- map_df(countries, function(country) {
     cat("Processing", country, "\n")
     
-    country_page <- paste0("http://www.parties-and-elections.eu/", country, ".html")
-    last_two_years <- read_html(country_page) %>%
+    country_page <- paste0("http://www.parties-and-elections.eu/", country, ".html") %>% 
+        read_html()
+    
+    last_two_years <- country_page %>%
         html_nodes("table:nth-child(6) td") %>%
         html_text() %>%
         str_trim() %>% 
         str_subset("^\\d{4}") %>% 
         str_replace_all("\\s", "")
     
-    last_two0 <- read_html(country_page) %>%
+    last_two0 <- country_page %>%
         html_nodes(xpath = "//table[@border = '1']") %>%
         html_table(fill = TRUE) %>% 
         first() %>% 
         select(X2, X4, X6) %>% 
+        filter(!(X2 == "Others" | str_detect(X2, "Turnout") | str_detect(X2, "Miscellaneous"))) %>% 
         filter(str_detect(X2, "\\(")) %>% 
         mutate(current = str_extract(X2, "(?<=\\()(.*)(?=\\))"),
                old = str_extract(X2, "(?<![\\S])[-+/A-Z]{2,}(?![^]])"),
@@ -78,7 +81,7 @@ change_data <- map_df(countries, function(country) {
                                      str_extract(party, "(?<=\\()(.*)(?=\\))"),
                                      party))
     
-    archive_links <- read_html(country_page) %>% 
+    archive_links <- country_page %>% 
         html_nodes(".bottom") %>% 
         html_attr("href") %>% 
         paste0("http://www.parties-and-elections.eu/", .)
@@ -95,7 +98,7 @@ change_data <- map_df(countries, function(country) {
             as_tibble() %>%
             first_row_to_names() %>%
             filter(str_detect(percent, "%")) %>%
-            filter(!(party == "Others" | party == "Turnout")) %>%
+            filter(!(party == "Others" | str_detect(party, "Turnout") | str_detect(party, "Miscellaneous"))) %>%
             select(-percent) %>%
             gather(key = election, value = vote_share, -party) %>%
             arrange(party) %>%
@@ -201,18 +204,24 @@ change_data <- map_df(countries, function(country) {
         full_join(last_two %>% 
                       transmute(bridge_name = bridge_name,
                                 l2_party = party) %>% 
-                      distinct(), by = "bridge_name")
+                      distinct(), by = "bridge_name") %>% 
+        mutate(cons_party = if_else(bridge_name == l2_party, archive_party,        # no changes in last two, so archive_party works
+                                if_else(bridge_name == archive_party, l2_party,    # no changes in archive, so l2_party works
+                                        paste0(str_replace(l2_party, "\\)", ", "), # changes in both, so combine them
+                                               str_extract(archive_party, "(?<=\\().*")))))
      
     c_data <- left_join(archive_votes, archive_changes, by = c("party", "year")) %>% 
          mutate(change = if_else(is.na(change), 0L, 1L),
                 country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE) %>% 
                     str_replace("kingdom", " Kingdom"),
                 bridge_name = str_extract(party, "^[^(\\s]*")) %>% 
-        # use bridge_name to generate a key to match parties from both last_two and c_data, then 
-        # create consolidated name in key, then merge consolidated name into both, then
-        # bind_rows as current
+        left_join(bridge, by = "bridge_name") %>% 
+        mutate(party = if_else(!is.na(cons_party), cons_party, party)) %>% 
         select(country, party, election, year, vote_share, change) %>% 
-        bind_rows(last_two) %>% 
+        bind_rows(last_two %>% 
+                      left_join(bridge, by = "bridge_name") %>% 
+                      mutate(party = if_else(!is.na(cons_party), cons_party, party)) %>% 
+                      select(country, party, election, year, vote_share, change, recent)) %>% 
         arrange(country, party, election) %>% 
         mutate(recent = if_else(is.na(recent), 0, recent))
     

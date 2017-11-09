@@ -24,19 +24,76 @@ first_row_to_names <- function(x) {
     return(x)
 }
 
-correct_for_alliances <- function(df, vote_variable) {
-    alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
-                               vote_total = rle(df[[vote_variable]])$values)
-    df[[vote_variable]] <- suppressWarnings(alliance_members[rep(1:nrow(alliance_members), alliance_members$members), ] %>% 
-        mutate(votes = (vote_total %>% 
-                            str_trim() %>% 
-                            str_replace(",", ".") %>% 
-                            str_replace("%", "") %>% 
-                            as.numeric() / members) %>% 
-                   round(1),
-               votes = if_else(is.na(votes), 0, votes)) %>% 
-        pull(votes))
-    return(df)
+correct_for_alliances <- function(df) {
+    # first, correct for alliances listed by acronym in year 1
+    ally_names1 <- df %>% pull(X6) %>% str_subset("[A-Z]") %>% unique()
+    if (length(ally_names1 > 0)) {
+        alliances1 <- map_df(ally_names1, function(a_name) {
+            df %>% 
+                filter(str_detect(party, a_name)) %>% 
+                transmute(alliance_name1 = party,
+                          alliance_seats1 = str_extract(X7, "\\d+") %>% as.numeric(),
+                          alliance_votes1 = X6 %>% 
+                              str_trim() %>% 
+                              str_replace(",", ".") %>% 
+                              str_replace("%", "") %>% 
+                              as.numeric(),
+                          ally1 = a_name)
+        } )                    
+        df <- df %>%
+            left_join(alliances1, by = c("X6" = "ally1")) %>% 
+            mutate(X7 = as.numeric(str_extract(X7, "\\d+")),
+                   X6 = if_else(!is.na(alliance_name1), 
+                                round(alliance_votes1 * (X7/alliance_seats1), 1) %>% as.character(),
+                                X6))
+    }
+    
+    # then, correct for alliances listed by acronym in year 1
+    ally_names2 <- df %>% pull(X4) %>% str_subset("[A-Z]") %>% unique()
+    if (length(ally_names2 > 0)) {
+        alliances2 <- map_df(ally_names2, function(a_name) {
+            df %>% 
+                filter(str_detect(party, a_name)) %>% 
+                transmute(alliance_name2 = party,
+                          alliance_seats2 = str_extract(X5, "\\d+") %>% as.numeric(),
+                          alliance_votes2 = X4 %>% 
+                              str_trim() %>% 
+                              str_replace(",", ".") %>% 
+                              str_replace("%", "") %>% 
+                              as.numeric(),
+                          ally2 = a_name)
+        } )                    
+        df <- df %>%
+            left_join(alliances2, by = c("X4" = "ally2")) %>% 
+            mutate(X5 = as.numeric(str_extract(X5, "\\d+")),
+                   X4 = if_else(!is.na(alliance_name2), 
+                                round(alliance_votes2 * (X5/alliance_seats2), 1) %>% as.character(),
+                                X4))
+    }
+
+    # then, correct for alliances indicated by merged cells
+    correct_merged <- function(df, vote_variable) { 
+        seat_variable <- paste0("X", str_extract(vote_variable, "\\d") %>% as.numeric() + 1)
+        alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
+                                   vote_total = rle(df[[vote_variable]])$values)
+        alliance_members2 <- alliance_members[rep(1:nrow(alliance_members),
+                                                  alliance_members$members), ] %>% 
+            mutate(seats = str_extract(df[[seat_variable]], "\\d+") %>% as.numeric(),
+                   a_code = as.numeric(as.factor(df[[vote_variable]]))) %>% 
+            group_by(a_code, members) %>% 
+            mutate(alliance_seats = sum(seats),
+                   votes = suppressWarnings(vote_total %>% 
+                                 str_trim() %>% 
+                                 str_replace(",", ".") %>% 
+                                 str_replace("%", "") %>% 
+                                 as.numeric() * (seats/alliance_seats)) %>% 
+                                round(1))
+        df[[vote_variable]] <- as.character(alliance_members2$votes)
+        return(df)
+    }
+    df <- df %>% 
+        correct_merged("X4") %>% 
+        correct_merged("X6")
 }
 
 change_data <- map_df(countries, function(country) {
@@ -56,15 +113,14 @@ change_data <- map_df(countries, function(country) {
         html_nodes(xpath = "//table[@border = '1']") %>%
         html_table(fill = TRUE) %>% 
         first() %>% 
-        select(X2, X4, X6) %>% 
-        filter(!(X2 == "Others" | str_detect(X2, "Turnout") | str_detect(X2, "Miscellaneous"))) %>% 
+        select(X2, X4:X7) %>% 
+        filter(!(X2 == "Others" | str_detect(X2, "Turnout"))) %>% 
         filter(str_detect(X2, "\\(")) %>% 
         mutate(current = str_extract(X2, "(?<=\\()(.*)(?=\\))"),
                old = str_extract(X2, "(?<![\\S])[-+/A-Z]{2,}(?![^]])"),
                party = if_else(is.na(old), current, paste0(current, " (", old, ")")),
                change = as.numeric(!is.na(old))) %>%
-        correct_for_alliances("X4") %>% 
-        correct_for_alliances("X6") %>% 
+        correct_for_alliances() %>% 
         select(X4, X6, party, change) 
     names(last_two0)[1:2] <- last_two_years
     last_two <- last_two0 %>%

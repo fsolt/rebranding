@@ -73,7 +73,7 @@ change_data <- map_df(countries, function(country) {
                                            str_trim() %>% 
                                            str_replace(",", ".") %>% 
                                            str_replace("%", "")),
-               year = str_replace_all(election, "\\D", ""),
+               year = str_extract(election, "\\d{4}"),
                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE),
                recent = 1) %>% 
         select(country, party, election, year, vote_share, change, recent) %>% 
@@ -107,7 +107,7 @@ change_data <- map_df(countries, function(country) {
                                         suppressWarnings(vote_share %>% str_trim() %>% str_replace(",", ".") %>% as.numeric()),
                                         0),
                    party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2"),
-                   year = str_replace_all(election, "\\D", "")) 
+                   year = str_extract(election, "\\d{4}")) 
     })
     
     election_years <- archive_votes %>% 

@@ -156,6 +156,13 @@ change_data <- map_df(countries, function(country) {
             filter(str_detect(percent, "%")) %>%
             filter(!(party == "Others" | str_detect(party, "Turnout") | str_detect(party, "Miscellaneous"))) %>%
             select(-percent) %>%
+            group_by(party) %>% 
+            mutate(name_count = as.factor(party) %>% as.numeric() %>% cumsum()) %>%
+            ungroup() %>% 
+            mutate(party = if_else(name_count > 1,
+                                   paste0(party, name_count),
+                                   party)) %>% 
+            select(-name_count) %>% 
             gather(key = election, value = vote_share, -party) %>%
             arrange(party) %>%
             filter(!str_detect(vote_share, "^[A-Z]")) %>% # omit election if party ran in coalition
@@ -178,7 +185,6 @@ change_data <- map_df(countries, function(country) {
             paste(collapse = "") %>% 
             gsub(x = ., ".*Abbreviations:\\W(.*)(©|Wolfram).*", "\\1") %>% 
             gsub(x = ., "\\r\\n", "")
-        if (country=="iceland") notes <- gsub(pattern="BF \\(([12])\\)", replacement="BF\\1", x=notes)
         if (country=="denmark") notes <- gsub(pattern="\\((since [0-9]{4})\\)", replacement="\\1", x=notes)
         if (country=="ireland") notes <- gsub(pattern="\\(Family[^)]*\\)", replacement="", x=notes)
         notes0 <- notes
@@ -294,10 +300,7 @@ change_data <- change_data0 %>%
                str_replace("Ü", "U") %>% 
                str_replace("\\+([A-Z])", "-\\1")
          )
-change_data$party <- gsub(pattern="PRLW \\(PRLW-PL\\)", replacement="MR (PRLW-PL, PRL, PRL-FDF)", x=change_data$party)
-change_data$party <- gsub(pattern="MR \\(PRL, PRL-FDF\\)", replacement="MR (PRLW-PL, PRL, PRL-FDF)", x=change_data$party)
-change_data$party[change_data$party=="BF (1)"] <- "BF1"
-change_data$party[change_data$party=="BF (2)"] <- "BF2"
+
 change_data$change[change_data$party=="MR (PRLW-PL, PRL, PRL-FDF)" & change_data$year=="1981"] <- 1
 change_data$change[change_data$party=="AOV (AOV-55+)" & change_data$year=="1998"] <- 1
 change_data$party[change_data$party=="KRF" & change_data$country=="Denmark"] <- "KD (KRF)" #fixes twopage issue

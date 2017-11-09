@@ -285,4 +285,57 @@ change_data <- map_df(countries, function(country) {
 
     
     return(c_data)
-})
+}) 
+
+change_data0 <- change_data
+
+change_data <- change_data0 %>% 
+    mutate(party = str_replace(party, "Ö", "O") %>% 
+               str_replace("Ü", "U") %>% 
+               str_replace("\\+([A-Z])", "-\\1")
+         )
+change_data$party <- gsub(pattern="PRLW \\(PRLW-PL\\)", replacement="MR (PRLW-PL, PRL, PRL-FDF)", x=change_data$party)
+change_data$party <- gsub(pattern="MR \\(PRL, PRL-FDF\\)", replacement="MR (PRLW-PL, PRL, PRL-FDF)", x=change_data$party)
+change_data$party[change_data$party=="BF (1)"] <- "BF1"
+change_data$party[change_data$party=="BF (2)"] <- "BF2"
+change_data$change[change_data$party=="MR (PRLW-PL, PRL, PRL-FDF)" & change_data$year=="1981"] <- 1
+change_data$change[change_data$party=="AOV (AOV-55+)" & change_data$year=="1998"] <- 1
+change_data$party[change_data$party=="KRF" & change_data$country=="Denmark"] <- "KD (KRF)" #fixes twopage issue
+change_data$change[change_data$party=="KD (KRF)" & change_data$country=="Denmark" & change_data$year==1990] <- 1
+change_data$party[change_data$party=="PR (LP)" & change_data$country=="Italy"] <- "RAD (LP, LPS, LB)" #fixes twopage issue
+change_data$change[change_data$party=="RAD (LP, LPS, LB)" & change_data$country=="Italy" & change_data$year==1992] <- 1
+change_data$party[change_data$party=="VERDI" & change_data$country=="Italy"] <- "VERDI (LV)" #fixes twopage issue
+change_data$party[change_data$party=="PCI (FDP, PDS)" & change_data$country=="Italy"] <- "DS (FDP, PCI, PDS)" #fixes twopage issue
+change_data$party[change_data$party=="DS (PDS)" & change_data$country=="Italy"] <- "DS (FDP, PCI, PDS)" #fixes twopage issue
+change_data$year[change_data$year=="2007" & change_data$country=="Portugal"] <- "2009" #fixes typo in Parties and Elections data
+
+not.parties <- c("Ind.", "Independents", "Others", "Others/Ind.", "Åland", "Independents/Aosta Valley*")
+change_data <- change_data[!change_data$party %in% not.parties,]
+change_data$year <- as.numeric(change_data$year)
+
+#Create variables capturing every acronym the party has ever had separately
+sbt <- strsplit(change_data[,1], " \\(|, |)")
+n <- max(sapply(sbt, length))
+l <- lapply(sbt, function(x) c(x, rep(NA, n - length(x))))
+change_data <- cbind(change_data, data.frame(t(do.call(cbind, l))))
+names(change_data) <- gsub(pattern="X", replacement="name", x=names(change_data))
+
+#Drop parties when they have not yet received any votes (not formed yet)
+change_data <- change_data[with(change_data, order(country, party, year)),]
+change_data$total_votes <- ddply(change_data, .(country, party), function(x) cumsum(x["votes"]))[,3]
+change_data <- change_data[change_data$total_votes>0,-12]
+
+#Drop parties when they never receive votes again (disbanded)
+change_data <- change_data[with(change_data, order(country, party, -year)),]
+change_data$total_votes_rev <- ddply(change_data, .(country, party), function(x) cumsum(x["votes"]))[,3]
+change_data <- change_data[change_data$total_votes_rev>0,-12]
+change_data <- change_data[with(change_data, order(country, party, year)),]
+
+#Save
+write.table(change_data, file="change_data.csv", sep=",", row.names=F, na="")
+rm(list=setdiff(ls(), c("change_data", "c.d")))
+save(change_data, file="change_data.RData")
+save(change_data, file="../Analysis/change_data.RData")
+save(change_data, file="../Parties and Elections/change_data.RData")
+
+

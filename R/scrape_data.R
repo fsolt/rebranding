@@ -25,7 +25,39 @@ first_row_to_names <- function(x) {
 }
 
 correct_for_alliances <- function(df) {
-    # first, correct for alliances listed by acronym in year 1
+    # first correct for alliances indicated by merged cells
+    correct_merged <- function(df, vote_variable) { 
+        seat_variable <- paste0("X", str_extract(vote_variable, "\\d") %>% as.numeric() + 1)
+        alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
+                                   vote_total = rle(df[[vote_variable]])$values)
+        alliance_members2 <- alliance_members[rep(1:nrow(alliance_members),
+                                                  alliance_members$members), ] %>% 
+            mutate(vvv = df[[vote_variable]],
+                   seats = str_extract(df[[seat_variable]], "\\d+") %>% as.numeric(),
+                   a_code = as.numeric(as.factor(df[[vote_variable]]))) %>% 
+            group_by(a_code, members) %>% 
+            mutate(seats = if_else(is.na(seats), 0, seats),
+                   alliance_seats = sum(seats),
+                   votes = if_else(!(alliance_seats == 0 | !str_detect(vvv, "\\d")), 
+                                   suppressWarnings(vote_total %>% 
+                                                        str_trim() %>% 
+                                                        str_replace(",", ".") %>% 
+                                                        str_replace("%", "") %>% 
+                                                        as.numeric() * (seats/alliance_seats)) %>% 
+                                       round(1) %>% 
+                                       as.character(),
+                                   vvv %>% 
+                                       str_trim() %>% 
+                                       str_replace(",", ".") %>% 
+                                       str_replace("%", "")))
+        df[[vote_variable]] <- alliance_members2$votes
+        return(df)
+    }
+    df <- df %>% 
+        correct_merged("X4") %>% 
+        correct_merged("X6")
+    
+    # then, correct for alliances listed by acronym in year 1
     ally_names1 <- df %>% pull(X6) %>% str_subset("[A-Z]") %>% unique()
     if (length(ally_names1 > 0)) {
         alliances1 <- map_df(ally_names1, function(a_name) {
@@ -48,7 +80,7 @@ correct_for_alliances <- function(df) {
                                 X6))
     }
     
-    # then, correct for alliances listed by acronym in year 1
+    # and then correct for alliances listed by acronym in year 2
     ally_names2 <- df %>% pull(X4) %>% str_subset("[A-Z]") %>% unique()
     if (length(ally_names2 > 0)) {
         alliances2 <- map_df(ally_names2, function(a_name) {
@@ -71,29 +103,7 @@ correct_for_alliances <- function(df) {
                                 X4))
     }
 
-    # then, correct for alliances indicated by merged cells
-    correct_merged <- function(df, vote_variable) { 
-        seat_variable <- paste0("X", str_extract(vote_variable, "\\d") %>% as.numeric() + 1)
-        alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
-                                   vote_total = rle(df[[vote_variable]])$values)
-        alliance_members2 <- alliance_members[rep(1:nrow(alliance_members),
-                                                  alliance_members$members), ] %>% 
-            mutate(seats = str_extract(df[[seat_variable]], "\\d+") %>% as.numeric(),
-                   a_code = as.numeric(as.factor(df[[vote_variable]]))) %>% 
-            group_by(a_code, members) %>% 
-            mutate(alliance_seats = sum(seats),
-                   votes = suppressWarnings(vote_total %>% 
-                                 str_trim() %>% 
-                                 str_replace(",", ".") %>% 
-                                 str_replace("%", "") %>% 
-                                 as.numeric() * (seats/alliance_seats)) %>% 
-                                round(1))
-        df[[vote_variable]] <- as.character(alliance_members2$votes)
-        return(df)
-    }
-    df <- df %>% 
-        correct_merged("X4") %>% 
-        correct_merged("X6")
+    return(df)
 }
 
 change_data <- map_df(countries, function(country) {

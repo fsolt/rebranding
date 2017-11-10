@@ -263,7 +263,8 @@ change_data <- map_df(countries, function(country) {
     })
     
     bridge <- archive_votes %>% 
-        transmute(bridge_name = str_extract(party, "^[^(\\s]*"),
+        transmute(bridge_name = str_extract(party, "^[^(\\s]*") %>% 
+                      str_replace("OPEN", "OPEN VLD"),
                archive_party = party) %>% 
         distinct() %>% 
         full_join(last_two %>% 
@@ -290,8 +291,6 @@ change_data <- map_df(countries, function(country) {
                       select(country, party, election, year, vote_share, change, recent)) %>% 
         arrange(country, party, election) %>% 
         mutate(recent = if_else(is.na(recent), 0, recent))
-    
-
     
     return(c_data)
 }) 

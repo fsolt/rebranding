@@ -180,7 +180,11 @@ change_data <- map_df(countries, function(country) {
             arrange(party) %>%
             filter(!str_detect(vote_share, "^[A-Z]")) %>% # omit election if party ran in coalition
             mutate(vote_share = if_else(str_detect(vote_share, "\\d"), 
-                                        suppressWarnings(vote_share %>% str_trim() %>% str_replace(",", ".") %>% as.numeric()),
+                                        suppressWarnings(vote_share %>% 
+                                                             str_trim() %>%
+                                                             str_replace(",", ".") %>% 
+                                                             str_replace_all("[()]", "") %>%
+                                                             as.numeric()),
                                         0),
                    party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2"),
                    year = str_extract(election, "\\d{4}")) 
@@ -257,13 +261,14 @@ change_data <- map_df(countries, function(country) {
             
             change_years <- str_extract_all(notes, "([0-9]{4}\\-[0-9]{4}|[0-9]{4})")
             change_years <- change_years[1:length(change_years)-1] # because of leftover tail of string after splitting
+            change_years <- lapply(change_years, function(x) gsub(pattern="^([0-9]{4})$","\\1-\\1", x))
             last_year <- lapply(change_years, function(x) gsub(pattern=".*\\-([0-9]{4})$","\\1", x)[length(x)])
             change_years <- lapply(change_years, function(x) gsub(pattern="\\-[0-9]{4}$", "", x))
             
             last_change <- lapply(last_year, function(x) election_years[which(election_years==x)+1])
             
             change_years <- lapply(change_years, function(x) paste(x, collapse=","))
-            change_years <- lapply(change_years, function(x) gsub(pattern="^[0-9]{4},?","", x)) # first year of party isn't a *re-*branding
+# problem here >            change_years <- lapply(change_years, function(x) gsub(pattern="^[0-9]{4},?","", x)) # first year of party isn't a *re-*branding
             change_years <- paste(change_years, last_change, sep=",")
             change_years <- lapply(change_years, function(x) gsub(pattern="^,","", x)) 
             change_years <- strsplit(as.character(change_years), ",")
@@ -315,7 +320,6 @@ change_data <- change_data0 %>%
                str_replace("\\+([A-Z])", "-\\1")
          )
 
-change_data$change[change_data$party=="MR (PRLW-PL, PRL, PRL-FDF)" & change_data$year=="1981"] <- 1
 change_data$change[change_data$party=="AOV (AOV-55+)" & change_data$year=="1998"] <- 1
 change_data$party[change_data$party=="KRF" & change_data$country=="Denmark"] <- "KD (KRF)" #fixes twopage issue
 change_data$change[change_data$party=="KD (KRF)" & change_data$country=="Denmark" & change_data$year==1990] <- 1

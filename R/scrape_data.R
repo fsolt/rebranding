@@ -131,19 +131,19 @@ change_data <- map_df(countries, function(country) {
                    str_replace("Č", "C") %>% 
                    str_replace("Ú", "U"),
                old = str_extract(X2, "(?<![\\S])[-+/A-Z]{2,}(?![^]])"),
-               party = if_else(is.na(old), current, paste0(current, " (", old, ")")),
-               change = as.numeric(!is.na(old))) %>%
+               party = if_else(is.na(old), current, paste0(current, " (", old, ")"))) %>%
         correct_for_alliances() %>% 
-        select(X4, X6, party, change) 
+        select(X4, X6, party) 
     names(last_two0)[1:2] <- last_two_years
     last_two <- last_two0 %>%
-        gather(key = election, value = vote_share, -party, -change) %>% 
+        gather(key = election, value = vote_share, -party) %>% 
         mutate(vote_share = suppressWarnings(as.numeric(vote_share %>% 
                                            str_trim() %>% 
                                            str_replace(",", ".") %>% 
                                            str_replace("%", ""))),
                year = str_extract(election, "\\d{4}"),
                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE),
+               change = as.numeric(str_detect(party, "\\(") & election == last_two_years[1]),
                recent = 1) %>% 
         select(country, party, election, year, vote_share, change, recent) %>% 
         mutate(bridge_name = if_else(str_detect(party, "\\("), 

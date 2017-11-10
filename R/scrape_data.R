@@ -114,9 +114,10 @@ change_data <- map_df(countries, function(country) {
         html_table(fill = TRUE) %>% 
         first() %>% 
         select(X2, X4:X7) %>% 
-        filter(!(X2 == "Others" | str_detect(X2, "Turnout"))) %>% 
+        filter(!(X2 == "Others" | str_detect(X2, "Turnout") | str_detect(X2, "Unfilled"))) %>% 
         filter(str_detect(X2, "\\(")) %>% 
-        mutate(current = str_extract(X2, "(?<=\\()(.*)(?=\\))"),
+        mutate(current = str_extract(X2, "((?<=\\()(.*)(?=\\)))|((?<=\\()Open\\s+[-+/A-Z]{2,}(?=\\)))") %>% 
+                   str_replace("Open\\s+", "OPEN "),
                old = str_extract(X2, "(?<![\\S])[-+/A-Z]{2,}(?![^]])"),
                party = if_else(is.na(old), current, paste0(current, " (", old, ")")),
                change = as.numeric(!is.na(old))) %>%

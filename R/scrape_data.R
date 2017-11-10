@@ -300,9 +300,9 @@ change_data <- map_df(countries, function(country) {
                       left_join(bridge, by = "bridge_name") %>% 
                       mutate(party = if_else(!is.na(cons_party), cons_party, party),
                              vote_share = if_else(is.na(vote_share), 0, vote_share)) %>% 
-                      select(country, party, election, year, vote_share, change, recent)) %>% 
+                      select(country, party, election, year, vote_share, change)) %>% 
         arrange(country, party, election) %>% 
-        mutate(recent = if_else(is.na(recent), 0, recent))
+        distinct()
     
     return(c_data)
 }) 

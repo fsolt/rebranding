@@ -187,9 +187,8 @@ change_data <- map_df(countries, function(country) {
             gsub(x = ., "\\r\\n", "")
         if (country=="denmark") notes <- gsub(pattern="\\((since [0-9]{4})\\)", replacement="\\1", x=notes)
         if (country=="ireland") notes <- gsub(pattern="\\(Family[^)]*\\)", replacement="", x=notes)
-        notes0 <- notes
         notes <- unlist(strsplit(notes, "\\)"))  
-        # the following is only lightly edited from rebranding_scrape.R (i.e., ooold school)
+        # the following is only lightly edited from rebranding_scrape.R (i.e., ooold school, and I didn't check if all fixes are still needed)
         if (length(notes) > 1) { # as long as there is at least one rebranded party . . .
             notes <- gsub(pattern="^; ", replacement="", x=notes)
             
@@ -205,6 +204,7 @@ change_data <- map_df(countries, function(country) {
             c_p <- gsub(pattern="[^,]*,\\W+([^,;]*)[,;][^,]*", replacement=" \\1,", x=c_p) # retain only acronyms
             c_p <- gsub(pattern=".*:[^,]*,([^,;]*)[,;][^,]*", replacement=" \\1,", x=c_p) # retain only acronyms, second pass
             c_p <- gsub(pattern=" (.*),", replacement="(\\1)", x=c_p) # drop trailing comma and surround with parens
+            if(country=="belgium") c_p <- gsub(pattern="\\+ Liberal Party", replacement="+ PL", x=c_p) # kludge for Belgium
             if(country=="germany") c_p <- gsub(pattern=" Party for Unity,", replacement="", x=c_p) # kludge for Germany
             if(country=="norway") c_p <- gsub(pattern="\\( FMS\\)", replacement="(FMS, RV)", x=c_p) # kludge for Norway
             if(country=="sweden") c_p <- gsub(pattern="\\(KDS, KDS\\)", replacement="(KDS)", x=c_p) # kludge for Sweden
@@ -223,6 +223,8 @@ change_data <- map_df(countries, function(country) {
             changed_parties <- gsub(pattern="\\(\\)", replacement=")", x=changed_parties)
             changed_parties <- gsub(pattern="\\)\\W*", replacement=")", x=changed_parties)
             changed_parties <- gsub(pattern=" \\)$", replacement="", x=changed_parties)
+            
+            changed_parties <- gsub(pattern = "\\s+", replacement = " ", x = changed_parties) # fix whitespace
             
             if(country=="unitedkingdom") changed_parties[which(changed_parties=="GP (EP)")] <- "GP" # catches bug in Britian table
             if(country=="norway") changed_parties[which(changed_parties=="SV (SF)")] <- "SV (SF, SV)" # catches bug in Norway table
@@ -243,7 +245,7 @@ change_data <- map_df(countries, function(country) {
             change_years <- str_extract_all(notes, "([0-9]{4}\\-[0-9]{4}|[0-9]{4})")
             change_years <- change_years[1:length(change_years)-1] # because of leftover tail of string after splitting
             last_year <- lapply(change_years, function(x) gsub(pattern=".*\\-([0-9]{4})$","\\1", x)[length(x)])
-            change_years <- lapply(change_years, function(x) gsub(pattern="\\-[0-9]{4}$","", x))
+            change_years <- lapply(change_years, function(x) gsub(pattern="\\-[0-9]{4}$", "", x))
             
             last_change <- lapply(last_year, function(x) election_years[which(election_years==x)+1])
             

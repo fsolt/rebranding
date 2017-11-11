@@ -190,6 +190,21 @@ change_data <- map_df(countries, function(country) {
                    year = str_extract(election, "\\d{4}")) 
     })
     
+    # Fix continuity problems across two-page archives
+    if (country == "belgium") {
+        archive_votes <- archive_votes %>% 
+            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)"))
+    }
+    if (country == "denmark") {
+        archive_votes <- archive_votes %>% 
+            mutate(party = str_replace(party, "KRF", "KD (KRF)"))
+    }
+    if (country == "italy") {
+        archive_votes <- archive_votes %>% 
+            mutate(party = str_replace(party, "PCI \\(FDP, PDS\\)", "DS (FDP, PCI, PDS)") %>% 
+                       str_replace("DS \\(PDS\\)", "DS (FDP, PCI, PDS)"))
+    }
+
     election_years <- archive_votes %>% 
         pull(year) %>%
         c(last_two_years) %>% 
@@ -268,7 +283,6 @@ change_data <- map_df(countries, function(country) {
             last_change <- lapply(last_year, function(x) election_years[which(election_years==x)+1])
             
             change_years <- lapply(change_years, function(x) paste(x, collapse=","))
-# problem here >            change_years <- lapply(change_years, function(x) gsub(pattern="^[0-9]{4},?","", x)) # first year of party isn't a *re-*branding
             change_years <- paste(change_years, last_change, sep=",")
             change_years <- lapply(change_years, function(x) gsub(pattern="^,","", x)) 
             change_years <- strsplit(as.character(change_years), ",")
@@ -320,15 +334,6 @@ change_data <- change_data0 %>%
                str_replace("\\+([A-Z])", "-\\1")
          )
 
-change_data$change[change_data$party=="AOV (AOV-55+)" & change_data$year=="1998"] <- 1
-change_data$party[change_data$party=="KRF" & change_data$country=="Denmark"] <- "KD (KRF)" #fixes twopage issue
-change_data$change[change_data$party=="KD (KRF)" & change_data$country=="Denmark" & change_data$year==1990] <- 1
-change_data$party[change_data$party=="PR (LP)" & change_data$country=="Italy"] <- "RAD (LP, LPS, LB)" #fixes twopage issue
-change_data$change[change_data$party=="RAD (LP, LPS, LB)" & change_data$country=="Italy" & change_data$year==1992] <- 1
-change_data$party[change_data$party=="VERDI" & change_data$country=="Italy"] <- "VERDI (LV)" #fixes twopage issue
-change_data$party[change_data$party=="PCI (FDP, PDS)" & change_data$country=="Italy"] <- "DS (FDP, PCI, PDS)" #fixes twopage issue
-change_data$party[change_data$party=="DS (PDS)" & change_data$country=="Italy"] <- "DS (FDP, PCI, PDS)" #fixes twopage issue
-change_data$year[change_data$year=="2007" & change_data$country=="Portugal"] <- "2009" #fixes typo in Parties and Elections data
 
 not.parties <- c("Ind.", "Independents", "Others", "Others/Ind.", "Åland", "Independents/Aosta Valley*")
 change_data <- change_data[!change_data$party %in% not.parties,]

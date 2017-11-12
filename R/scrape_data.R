@@ -199,6 +199,10 @@ change_data <- map_df(countries, function(country) {
         archive_votes <- archive_votes %>% 
             mutate(party = str_replace(party, "KRF", "KD (KRF)"))
     }
+    if (country == "greece") {
+        archive_votes <- archive_votes %>% 
+            mutate(party = str_replace(party, "EK", "EDIK (EK-KP, EK)"))
+    }
     if (country == "italy") {
         archive_votes <- archive_votes %>% 
             mutate(party = str_replace(party, "PCI \\(FDP, PDS\\)", "DS (FDP, PCI, PDS)") %>% 

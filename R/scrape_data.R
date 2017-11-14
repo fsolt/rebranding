@@ -202,7 +202,7 @@ change_data <- map_df(countries, function(country) {
     }
     if (country == "greece") {
         archive_votes <- archive_votes %>% 
-            mutate(party = str_replace(party, "EK", "EDIK (EK-KP, EK)"))
+            mutate(party1 = str_replace(party1, "^EK$", "EDIK"))
     }    
     if (country == "italy") {
         archive_votes <- archive_votes %>% 
@@ -308,7 +308,7 @@ change_data <- map_df(countries, function(country) {
     }
     if (country == "greece") {
         archive_changes <- archive_changes %>% 
-            mutate(party = str_replace(party, "EK", "EDIK (EK-KP, EK)"))
+            mutate(party = str_replace(party, "^(EK \\(EK-KP\\))|(EDIK \\(EK\\))", "EDIK (EK-KP, EK)"))
     }
     if (country == "italy") {
         archive_changes <- archive_changes %>% 
@@ -332,10 +332,6 @@ change_data <- map_df(countries, function(country) {
     if (country == "denmark") {
         archive_changes <- archive_changes %>% 
             mutate(party = str_replace(party, "KRF", "KD (KRF)"))
-    }
-    if (country == "greece") {
-        archive_changes <- archive_changes %>% 
-            mutate(party = str_replace(party, "EK", "EDIK (EK-KP, EK)"))
     }
     
     bridge <- c_data0 %>% 

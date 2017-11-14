@@ -194,11 +194,10 @@ change_data <- map_df(countries, function(country) {
         mutate(party1 = str_extract(party, "^\\S*")) %>% 
         select(-party)
 
-    
     # Fix continuity problems across two-page archives
     if (country == "denmark") {
         archive_votes <- archive_votes %>% 
-            mutate(party = str_replace(party, "KRF", "KD (KRF)"))
+            mutate(party1 = str_replace(party1, "KRF", "KD"))
     }
     if (country == "greece") {
         archive_votes <- archive_votes %>% 
@@ -302,10 +301,6 @@ change_data <- map_df(countries, function(country) {
         archive_changes <- archive_changes %>% 
             mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)"))
     }
-    if (country == "denmark") {
-        archive_changes <- archive_changes %>% 
-            mutate(party = str_replace(party, "KRF", "KD (KRF)"))
-    }
     if (country == "greece") {
         archive_changes <- archive_changes %>% 
             mutate(party = str_replace(party, "^(EK \\(EK-KP\\))|(EDIK \\(EK\\))", "EDIK (EK-KP, EK)"))
@@ -328,11 +323,6 @@ change_data <- map_df(countries, function(country) {
                       select(-party), by = c("party1", "year")) %>% 
         mutate(party = if_else(is.na(party), party1, party),
                change = if_else(is.na(change), 0L, as.integer(change)))
-    
-    if (country == "denmark") {
-        archive_changes <- archive_changes %>% 
-            mutate(party = str_replace(party, "KRF", "KD (KRF)"))
-    }
     
     bridge <- c_data0 %>% 
         transmute(bridge_name = str_extract(party, "^[^(\\s]*") %>% 
@@ -364,6 +354,10 @@ change_data <- map_df(countries, function(country) {
         arrange(country, party, election) %>% 
         distinct()
     
+    if (country == "denmark") {
+        c_data <- c_data %>%
+            mutate(change = if_else((party == "KD (KRF)" & year == 1979), 0, change))
+    }
     if (country == "italy") {
         c_data <- c_data %>% 
             mutate(party = str_replace(party, "^FI$", "FI (PDL)") %>% 

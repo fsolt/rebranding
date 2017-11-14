@@ -190,6 +190,11 @@ change_data <- map_df(countries, function(country) {
                    year = str_extract(election, "\\d{4}")) 
     })
     
+    archive_votes <- archive_votes %>% 
+        mutate(party1 = str_extract(party, "^\\S*")) %>% 
+        select(-party)
+
+    
     # Fix continuity problems across two-page archives
     if (country == "belgium") {
         archive_votes <- archive_votes %>% 
@@ -202,13 +207,13 @@ change_data <- map_df(countries, function(country) {
     if (country == "greece") {
         archive_votes <- archive_votes %>% 
             mutate(party = str_replace(party, "EK", "EDIK (EK-KP, EK)"))
-    }
+    }    
     if (country == "italy") {
         archive_votes <- archive_votes %>% 
-            mutate(party = str_replace(party, "PCI \\(FDP, PDS\\)", "DS (FDP, PCI, PDS)") %>% 
-                       str_replace("DS \\(PDS\\)", "DS (FDP, PCI, PDS)"))
+            mutate(party1 = str_replace(party1, "^(PCI)|(DS)|(ULIVO)", "PD"),
+                   str_replace(party1, "^(DL)|(PPI)", "DL"))
     }
-
+    
     election_years <- archive_votes %>% 
         pull(year) %>%
         c(last_two_years) %>% 
@@ -297,7 +302,51 @@ change_data <- map_df(countries, function(country) {
         return(changes)
     })
     
-    bridge <- archive_votes %>% 
+    if (country == "belgium") {
+        archive_changes <- archive_changes %>% 
+            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)"))
+    }
+    if (country == "denmark") {
+        archive_changes <- archive_changes %>% 
+            mutate(party = str_replace(party, "KRF", "KD (KRF)"))
+    }
+    if (country == "greece") {
+        archive_changes <- archive_changes %>% 
+            mutate(party = str_replace(party, "EK", "EDIK (EK-KP, EK)"))
+    }
+    if (country == "italy") {
+        archive_changes <- archive_changes %>% 
+            mutate(party = str_replace(party, "(^PCI.*)|(^DS.*)|(^ULIVO.*)", "PD (FDP, PCI, PDS, DS, ULIVO)") %>% 
+                       str_replace("^LN.*", "LN (LL, LN-MPA)") %>% 
+                       str_replace("^(DL.*)|(PPI.*)", "DL (PRODI, PPI)"))
+    }
+    
+    archive_changes <- archive_changes %>% 
+        mutate(party1 = str_extract(party, "^\\S*")) %>% 
+        distinct()
+    
+    c_data0 <- left_join(archive_votes, archive_changes %>%
+                             select(party1, party) %>% 
+                             distinct(), by = "party1") %>% 
+        left_join(archive_changes %>% 
+                      select(-party), by = c("party1", "year")) %>% 
+        mutate(party = if_else(is.na(party), party1, party),
+               change = if_else(is.na(change), 0L, as.integer(change)))
+    
+    if (country == "belgium") {
+        archive_changes <- archive_changes %>% 
+            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)"))
+    }
+    if (country == "denmark") {
+        archive_changes <- archive_changes %>% 
+            mutate(party = str_replace(party, "KRF", "KD (KRF)"))
+    }
+    if (country == "greece") {
+        archive_changes <- archive_changes %>% 
+            mutate(party = str_replace(party, "EK", "EDIK (EK-KP, EK)"))
+    }
+    
+    bridge <- c_data0 %>% 
         transmute(bridge_name = str_extract(party, "^[^(\\s]*") %>% 
                       str_replace("OPEN", "OPEN VLD"),
                archive_party = party) %>% 
@@ -311,9 +360,8 @@ change_data <- map_df(countries, function(country) {
                                         paste0(str_replace(l2_party, "\\)", ", "), # changes in both, so combine them
                                                str_extract(archive_party, "(?<=\\().*")))))
      
-    c_data <- left_join(archive_votes, archive_changes, by = c("party", "year")) %>% 
-         mutate(change = if_else(is.na(change), 0L, 1L),
-                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE) %>% 
+    c_data <- c_data0 %>% 
+         mutate(country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE) %>% 
                     str_replace("kingdom", " Kingdom"),
                 bridge_name = str_extract(party, "^[^(\\s]*")) %>% 
         left_join(bridge, by = "bridge_name") %>% 
@@ -324,8 +372,32 @@ change_data <- map_df(countries, function(country) {
                       mutate(party = if_else(!is.na(cons_party), cons_party, party),
                              vote_share = if_else(is.na(vote_share), 0, vote_share)) %>% 
                       select(country, party, election, year, vote_share, change)) %>% 
+        filter(!vote_share == 0) %>% 
         arrange(country, party, election) %>% 
         distinct()
+    
+    if (country == "italy") {
+        c_data <- c_data %>% 
+            mutate(party = str_replace(party, "^FI$", "FI (PDL)") %>% 
+                       str_replace("(^PRC$)|(SEL \\(SA\\))", "SEL (PRC, SA)"),
+                   change = if_else((party == "PD (FDP, PCI, PDS, DS, ULIVO)" & (year == 1948 |
+                                                                                     year == 1950 |
+                                                                                     year == 1994 |
+                                                                                     year == 1996 |
+                                                                                     year == 2006 |
+                                                                                     year == 2008)) |
+                                        (party == "LN (LL, LN-MPA)" & (year == 1992 |
+                                                                           year == 2006 |
+                                                                           year == 2008)) |
+                                        (party == "FI (PDL)" & (year == 2008 |
+                                                                    year == 2013)) |
+                                        (party == "DL (PRODI, PPI)" & (year == 1996 |
+                                                                           year == 1998)) |
+                                        (party == "SEL (PRC, SA)" & (year == 2008 |
+                                                                         year == 2013)),
+                                    1,
+                                    change))
+    }
     
     return(c_data)
 }) 

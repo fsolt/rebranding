@@ -124,7 +124,7 @@ change_data <- map_df(countries, function(country) {
         html_table(fill = TRUE) %>% 
         first() %>% 
         select(X2, X4:X7) %>% 
-        filter(!(X2 == "Others" | str_detect(X2, "Turnout") | str_detect(X2, "Unfilled"))) %>% 
+        filter(!(str_detect(X2, "Others") | str_detect(X2, "Turnout") | str_detect(X2, "Unfilled"))) %>% 
         filter(str_detect(X2, "\\(")) %>% 
         mutate(current = str_extract(X2, "((?<=\\()(.*)(?=\\)))|((?<=\\()Open\\s+[-+/A-Z]{2,}(?=\\)))") %>% 
                    str_replace("Open\\s+", "OPEN ") %>% 
@@ -167,7 +167,7 @@ change_data <- map_df(countries, function(country) {
             as_tibble() %>%
             first_row_to_names() %>%
             filter(str_detect(percent, "%")) %>%
-            filter(!(party == "Others" | str_detect(party, "Turnout") | str_detect(party, "Miscellaneous"))) %>%
+            filter(!(str_detect(party, "Others") | str_detect(party, "Turnout") | str_detect(party, "Miscellaneous"))) %>%
             select(-percent) %>%
             group_by(party) %>% 
             mutate(name_count = as.factor(party) %>% as.numeric() %>% cumsum()) %>%
@@ -299,7 +299,8 @@ change_data <- map_df(countries, function(country) {
     
     if (country == "belgium") {
         archive_changes <- archive_changes %>% 
-            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)"))
+            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)") %>% 
+                       str_replace("^VU.*", "VU (CVV, VU-ID21)"))
     }
     if (country == "greece") {
         archive_changes <- archive_changes %>% 
@@ -350,10 +351,14 @@ change_data <- map_df(countries, function(country) {
                       mutate(party = if_else(!is.na(cons_party), cons_party, party),
                              vote_share = if_else(is.na(vote_share), 0, vote_share)) %>% 
                       select(country, party, election, year, vote_share, change)) %>% 
-        filter(!vote_share == 0) %>% 
+        mutate(year = as.numeric(year)) %>% 
         arrange(country, party, election) %>% 
         distinct()
     
+    if (country == "belgium") {
+        c_data <- c_data %>%
+            mutate(vote_share = if_else((party == "VU (CVV, VU-ID21)" & year == 1954), 3.9, vote_share))
+    }
     if (country == "denmark") {
         c_data <- c_data %>%
             mutate(change = if_else((party == "KD (KRF)" & year == 1979), 0, change))
@@ -390,12 +395,16 @@ change_data <- change_data0 %>%
     mutate(party = str_replace(party, "Ö", "O") %>% 
                str_replace("Ü", "U") %>% 
                str_replace("\\+([A-Z])", "-\\1")
-         )
-
-
-not.parties <- c("Ind.", "Independents", "Others", "Others/Ind.", "Åland", "Independents/Aosta Valley*")
-change_data <- change_data[!change_data$party %in% not.parties,]
-change_data$year <- as.numeric(change_data$year)
+           ) %>% 
+    group_by(country, party) %>% 
+    mutate(running_vote = cumsum(vote_share)) %>% 
+    filter(!running_vote == 0) %>% # drop party-elections when party has not yet received any votes (not formed yet)
+    mutate(change = if_else(vote_share == running_vote, 0, change)) %>% # first election is not a *re*branding
+    arrange(country, party, -year) %>% 
+    mutate(running_vote = cumsum(vote_share)) %>%  
+    filter(!running_vote == 0 ) %>% # drop party-elections when party never receives votes again (disbanded)
+    ungroup() %>% 
+    arrange(country, party, year)
 
 #Create variables capturing every acronym the party has ever had separately
 sbt <- strsplit(change_data[,1], " \\(|, |)")
@@ -403,17 +412,6 @@ n <- max(sapply(sbt, length))
 l <- lapply(sbt, function(x) c(x, rep(NA, n - length(x))))
 change_data <- cbind(change_data, data.frame(t(do.call(cbind, l))))
 names(change_data) <- gsub(pattern="X", replacement="name", x=names(change_data))
-
-#Drop parties when they have not yet received any votes (not formed yet)
-change_data <- change_data[with(change_data, order(country, party, year)),]
-change_data$total_votes <- ddply(change_data, .(country, party), function(x) cumsum(x["votes"]))[,3]
-change_data <- change_data[change_data$total_votes>0,-12]
-
-#Drop parties when they never receive votes again (disbanded)
-change_data <- change_data[with(change_data, order(country, party, -year)),]
-change_data$total_votes_rev <- ddply(change_data, .(country, party), function(x) cumsum(x["votes"]))[,3]
-change_data <- change_data[change_data$total_votes_rev>0,-12]
-change_data <- change_data[with(change_data, order(country, party, year)),]
 
 #Save
 write.table(change_data, file="change_data.csv", sep=",", row.names=F, na="")

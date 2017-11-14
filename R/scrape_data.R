@@ -196,10 +196,6 @@ change_data <- map_df(countries, function(country) {
 
     
     # Fix continuity problems across two-page archives
-    if (country == "belgium") {
-        archive_votes <- archive_votes %>% 
-            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)"))
-    }
     if (country == "denmark") {
         archive_votes <- archive_votes %>% 
             mutate(party = str_replace(party, "KRF", "KD (KRF)"))
@@ -333,10 +329,6 @@ change_data <- map_df(countries, function(country) {
         mutate(party = if_else(is.na(party), party1, party),
                change = if_else(is.na(change), 0L, as.integer(change)))
     
-    if (country == "belgium") {
-        archive_changes <- archive_changes %>% 
-            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)"))
-    }
     if (country == "denmark") {
         archive_changes <- archive_changes %>% 
             mutate(party = str_replace(party, "KRF", "KD (KRF)"))

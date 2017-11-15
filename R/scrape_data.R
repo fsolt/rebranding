@@ -391,10 +391,17 @@ change_data <- map_df(countries, function(country) {
 
 change_data0 <- change_data
 
+max_names <- change_data0 %>% 
+    pull(party) %>% 
+    strsplit("( \\()|,") %>% 
+    map_int(~ length(.x)) %>% 
+    max()
+
 change_data <- change_data0 %>% 
     mutate(party = str_replace(party, "Ö", "O") %>% 
                str_replace("Ü", "U") %>% 
-               str_replace("\\+([A-Z])", "-\\1")
+               str_replace("\\+([A-Z])", "-\\1") %>% 
+               str_replace(",+", ",")
            ) %>% 
     group_by(country, party) %>% 
     mutate(running_vote = cumsum(vote_share)) %>% 
@@ -404,14 +411,9 @@ change_data <- change_data0 %>%
     mutate(running_vote = cumsum(vote_share)) %>%  
     filter(!running_vote == 0 ) %>% # drop party-elections when party never receives votes again (disbanded)
     ungroup() %>% 
-    arrange(country, party, year)
-
-#Create variables capturing every acronym the party has ever had separately
-sbt <- strsplit(change_data[,1], " \\(|, |)")
-n <- max(sapply(sbt, length))
-l <- lapply(sbt, function(x) c(x, rep(NA, n - length(x))))
-change_data <- cbind(change_data, data.frame(t(do.call(cbind, l))))
-names(change_data) <- gsub(pattern="X", replacement="name", x=names(change_data))
+    arrange(country, party, year) %>% 
+    # create variables capturing every acronym the party has ever had separately
+    separate(party, into = paste0("name", 1:max_names), sep = "( \\()|,|\\)", remove = FALSE, fill = "right")
 
 #Save
 write.table(change_data, file="change_data.csv", sep=",", row.names=F, na="")

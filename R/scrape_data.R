@@ -1,6 +1,5 @@
 library(tidyverse)
 library(rvest)
-library(stringr)
 
 countries <- read_html("https://en.wikipedia.org/wiki/Member_state_of_the_European_Union") %>%
     html_table(fill=TRUE) %>%   # generates a list
@@ -13,8 +12,6 @@ countries <- read_html("https://en.wikipedia.org/wiki/Member_state_of_the_Europe
     str_replace("Republic", "ia") %>% 
     tolower() %>% 
     c(., "iceland", "norway", "switzerland")
-
-links <- paste0("http://www.parties-and-elections.eu/", countries, ".html")
 
 first_row_to_names <- function(x) {
     names(x) <- x[1, ]
@@ -327,7 +324,8 @@ change_data <- map_df(countries, function(country) {
     
     bridge <- c_data0 %>% 
         transmute(bridge_name = str_extract(party, "^[^(\\s]*") %>% 
-                      str_replace("OPEN", "OPEN VLD"),
+                      str_replace("OPEN", "OPEN VLD") %>% 
+                      str_replace("DIE", "DIE LINKE"),
                archive_party = party) %>% 
         distinct() %>% 
         full_join(last_two %>% 
@@ -410,16 +408,16 @@ change_data <- change_data0 %>%
     arrange(country, party, -year) %>% 
     mutate(running_vote = cumsum(vote_share)) %>%  
     filter(!running_vote == 0 ) %>% # drop party-elections when party never receives votes again (disbanded)
+    select(-running_vote) %>% 
     ungroup() %>% 
     arrange(country, party, year) %>% 
     # create variables capturing every acronym the party has ever had separately
-    separate(party, into = paste0("name", 1:max_names), sep = "( \\()|,|\\)", remove = FALSE, fill = "right")
+    separate(party, into = paste0("name", 1:max_names), sep = "( \\()|,|\\)", remove = FALSE, fill = "right") %>% 
+    mutate_at(vars(matches("name\\d+")), funs(if_else(. == "", NA_character_, .))) %>% 
+    select(-matches(paste0("name", max_names)))
 
-#Save
-write.table(change_data, file="change_data.csv", sep=",", row.names=F, na="")
-rm(list=setdiff(ls(), c("change_data", "c.d")))
-save(change_data, file="change_data.RData")
-save(change_data, file="../Analysis/change_data.RData")
-save(change_data, file="../Parties and Elections/change_data.RData")
+# save
+write_csv(change_data, "data/change_data.csv")
+save(change_data, file="data/change_data.rda")
 
 

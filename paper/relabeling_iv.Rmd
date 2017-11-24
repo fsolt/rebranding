@@ -1,0 +1,122 @@
+---
+title: "Consequences of Party Re-labeling"
+author: "Mi-son Kim and Frederick Solt"
+date: "11/22/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r plot_setup, include=FALSE}
+library(tidyverse)
+
+load("../data/change_data.rda") # run scrape_data.R to generate this file
+
+change_party <- change_data %>%
+    group_by(country, party) %>% 
+    summarize(change_sum = sum(change)) %>%
+    mutate(change_total = if_else(change_sum >=3, "3 or more", as.character(change_sum)),
+           changed_ever = if_else(change_sum > 0, 1, 0))
+    
+change_election <- change_data %>%
+    group_by(country, year) %>% 
+    summarize(change_sum = sum(change)) %>%
+    mutate(change_total = if_else(change_sum >=3, "3 or more", as.character(change_sum)))
+
+change_country <- change_party %>%
+    group_by(country) %>% 
+    summarise(changed_ever = mean(changed_ever))
+```
+
+We identified Wolfram Nordsieck's (\citeyear{Nordsieck2014}) \href{http://www.parties-and-elections.eu}{Parties and Elections in Europe} as the best available cross-national source on parties' names.  Norsieck has drawn on a host of country-specific resources to carefully identify the parties that contested national elections across the continent, the names they ran on, and their vote shares.  One disadvantage of this source, however, is that the information it contains is spread across many separate webpages and the information on party names appears only as blocks of text.  Nevertheless, taking advantage of the webscraping and text-handling capabilities of the \R packages \texttt{XML} \citep{Lang2015} and \texttt{stringr} \citep{Wickham2015}, we were able to collect and transform the data into a format suitable for analysis.  Our resulting dataset encompasses \Sexpr{dim(change.party)[1]} parties in \Sexpr{dim(change.election)[1]} different elections held in 31 European democracies (all 28 current EU members, plus Iceland, Norway, and Switzerland), for a total of \Sexpr{dim(change.data)[1]} party-election observations.  Our variable of interest, relabeling, is dichotomous, taking on a value of one when a preexisting party runs with a different name than it used in the previous election and zero otherwise.\footnote{\doublespacing As the example of the French Gaullists given above suggests, it may be the case that not all name changes are in fact equal: sometimes parties retain one or more words---or more rarely, the party acronym---as hints of their previous label to cue voters.  We leave exploration of these `partial' name changes for future research.} 
+
+```{r make_plots, include=FALSE}
+library(scales)
+library(ggplot2)
+
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+    require(grid)
+    
+    # Make a list from the ... arguments and plotlist
+    plots <- c(list(...), plotlist)
+    
+    numPlots = length(plots)
+    
+    # If layout is NULL, then use 'cols' to determine layout
+    if (is.null(layout)) {
+        # Make the panel
+        # ncol: Number of columns of plots
+        # nrow: Number of rows needed, calculated from # of cols
+        layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                         ncol = cols, nrow = ceiling(numPlots/cols))
+    }
+    
+    if (numPlots==1) {
+        print(plots[[1]])
+        
+    } else {
+        # Set up the page
+        grid.newpage()
+        pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+        
+        # Make each plot, in the correct location
+        for (i in 1:numPlots) {
+            # Get the i,j matrix positions of the regions that contain this subplot
+            matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+            
+            print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                            layout.pos.col = matchidx$col))
+        }
+    }
+}
+
+sum_plot_party <- ggplot(change_party, aes(x = factor(change_total))) +  
+    geom_bar(aes(y = (..count..)/sum(..count..))) + 
+    scale_y_continuous(labels = scales::percent_format(), limits=c(0,.73)) +
+    theme_bw() + coord_flip() +
+    ylab("a. Relabelings per Party") + 
+    theme(axis.title.y = element_blank()) 
+
+sum_plot_election <- ggplot(change_election, aes(x = factor(change_total))) +  
+    geom_bar(aes(y = (..count..)/sum(..count..))) + 
+    scale_y_continuous(labels = scales::percent_format(), limits=c(0,.73)) +
+    theme_bw() + coord_flip() + 
+    ylab("b. Relabelings per Election") + 
+    theme(axis.title.y = element_blank())
+
+sum_plot_country <- ggplot(change_country, aes(x = changed_ever, 
+    y = reorder(country, changed_ever)) ) + 
+    geom_point() + theme_bw() +
+    xlab("c. Relabeled Parties") + 
+    scale_x_continuous(labels = scales::percent_format()) +
+    theme(axis.title.y = element_blank())  +
+    expand_limits(x = 0)
+ 
+```
+
+`r round((1 - as.vector(table(change_party$change_total)/length(change_party$change_total))[1]) * 100)`\% of parties have relabeled themselves at least once, and more than `r round( (as.vector(table(change_party$change_total)/length(change_party$change_total))[4]) * 100)`\% have done so three or more times.
+
+```{r sum_tables, include=FALSE}
+#Summary Statistics Tables
+table(change_party$change_total)/length(change_party$change_total)
+change_party[change_party$change_sum>=3,1:4]
+
+table(change_election$change_total)/length(change_election$change_total)
+change_election[change_election$change_sum>=3,1:4]
+
+summary(change_country$changed_ever)
+```
+
+```{r sum_plot, echo=FALSE, message=FALSE, fig.width=6, fig.height=6}
+
+multiplot(sum_plot_party, sum_plot_election, sum_plot_country, 
+          layout = matrix(c(1, 2, 3, 3), nrow=2, byrow=F))
+```

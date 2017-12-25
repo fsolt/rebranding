@@ -148,6 +148,15 @@ change_data <- map_df(countries, function(country) {
                                      str_extract(party, "(?<=\\()(.*)(?=\\))"),
                                      party))
     
+    # Fix continuity problems for Romania
+    if (country == "romania") {
+        last_two <- last_two %>%
+            mutate(bridge_name = if_else(party == "PSD (USL)", "PSD", bridge_name),
+                   bridge_name = if_else(party == "PDL (ARD)", "PDL", bridge_name),
+                   change = if_else((party == "PSD (USL)" | party == "PDL (ARD)") & year == 2012, 1,
+                                    change))
+    }
+    
     archive_links <- country_page %>% 
         html_nodes(".bottom") %>% 
         html_attr("href") %>% 
@@ -331,8 +340,7 @@ change_data <- map_df(countries, function(country) {
                archive_party = party) %>% 
         distinct() %>% 
         full_join(last_two %>% 
-                      transmute(bridge_name = if_else(party == "PSD (USL)", "PSD", bridge_name), # fix for Romania
-                                l2_party = party) %>% 
+                      transmute(l2_party = party) %>% 
                       distinct(), by = "bridge_name") %>% 
         mutate(cons_party = if_else(bridge_name == l2_party, archive_party,        # no changes in last two, so archive_party works
                                 if_else(bridge_name == archive_party, l2_party,    # no changes in archive, so l2_party works
@@ -347,8 +355,6 @@ change_data <- map_df(countries, function(country) {
         mutate(party = if_else(!is.na(cons_party), cons_party, party)) %>% 
         select(country, party, election, year, vote_share, change) %>% 
         bind_rows(last_two %>% 
-                      mutate(bridge_name = if_else(party == "PSD (USL)", "PSD", bridge_name),
-                             change = if_else(party == "PSD (USL)" & year == 2012, 1, change)) %>%  # fix for Romania
                       left_join(bridge, by = "bridge_name") %>% 
                       mutate(party = if_else(!is.na(cons_party), cons_party, party),
                              vote_share = if_else(is.na(vote_share), 0, vote_share)) %>% 

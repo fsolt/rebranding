@@ -181,11 +181,12 @@ change_data <- map_df(countries, function(country) {
                                         suppressWarnings(vote_share %>% 
                                                              str_trim() %>%
                                                              str_replace(",", ".") %>% 
-                                                             str_replace_all("[()]", "") %>%
+                                                             str_replace_all("[()*]", "") %>%
                                                              as.numeric()),
                                         0),
                    party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2"),
-                   year = str_extract(election, "\\d{4}")) 
+                   year = str_extract(election, "\\d{4}"))
+        return(votes)
     })
     
     archive_votes <- archive_votes %>% 

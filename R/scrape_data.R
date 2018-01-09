@@ -25,6 +25,24 @@ correct_for_alliances <- function(df) {
     # first correct for alliances indicated by merged cells
     correct_merged <- function(df, vote_variable) { 
         seat_variable <- paste0("X", str_extract(vote_variable, "\\d") %>% as.numeric() + 1)
+        
+        # fix for alliances indicated by lead cell.  Limited to Spain for time being to ensure it doesn't break preceding countries.
+        if (any(str_detect(df[[seat_variable]], "\\(")) & country == "spain") {
+            df <- df %>%
+                mutate(vv = df[[vote_variable]],
+                       vv1 = df[[vote_variable]],
+                       vv1 = if_else(str_detect(df[[seat_variable]], "\\(") &
+                                         str_detect(df[[vote_variable]], "-"),
+                                     NA_character_,
+                                     vv1)) %>% 
+                fill(vv1) %>% 
+                mutate(vv = if_else(str_detect(df[[seat_variable]], "\\(") &
+                                        str_detect(df[[vote_variable]], "-"),
+                                    vv1,
+                                    if_else(vv1 == lead(vv1) & vv1 != last(vv1), NA_character_, vv)))
+            df[[vote_variable]] <- df$vv
+        }
+            
         alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
                                    vote_total = rle(df[[vote_variable]])$values)
         alliance_members2 <- alliance_members[rep(1:nrow(alliance_members),
@@ -75,6 +93,7 @@ correct_for_alliances <- function(df) {
                    X6 = if_else(!is.na(alliance_name1), 
                                 round(alliance_votes1 * (X7/alliance_seats1), 1) %>% as.character(),
                                 X6))
+        return(df)
     }
     
     # and then correct for alliances listed by acronym in year 2
@@ -130,8 +149,10 @@ change_data <- map_df(countries, function(country) {
                old = str_extract(X2, "(?<![\\S])[-+/A-Z]{2,}(?![^]])"),
                party = if_else(is.na(old), current, paste0(current, " (", old, ")"))) %>%
         correct_for_alliances() %>% 
-        select(X4, X6, party) 
+        select(X4, X6, party)
+    
     names(last_two0)[1:2] <- last_two_years
+    
     last_two <- last_two0 %>%
         gather(key = election, value = vote_share, -party) %>% 
         mutate(vote_share = suppressWarnings(as.numeric(vote_share %>% 
@@ -154,6 +175,17 @@ change_data <- map_df(countries, function(country) {
             mutate(bridge_name = if_else(party == "PSD (USL)", "PSD", bridge_name),
                    bridge_name = if_else(party == "PDL (ARD)", "PDL", bridge_name),
                    change = if_else((party == "PSD (USL)" | party == "PDL (ARD)") & year == 2012, 1,
+                                    change))
+    }
+    
+    # Fix continuity problems for Spain
+    if (country == "spain") {
+        last_two <- last_two %>%
+            mutate(bridge_name = if_else(party == "IU (UP)", "IU", bridge_name),
+                   bridge_name = if_else(party == "CDC", "CiU", bridge_name),
+                   change = if_else((party == "IU (UP)" | party == "CDC") & 
+                                        (year == 2015 | year == 2016), 
+                                    1,
                                     change))
     }
     
@@ -340,7 +372,8 @@ change_data <- map_df(countries, function(country) {
                archive_party = party) %>% 
         distinct() %>% 
         full_join(last_two %>% 
-                      transmute(l2_party = party) %>% 
+                      transmute(l2_party = party,
+                                bridge_name = bridge_name) %>% 
                       distinct(), by = "bridge_name") %>% 
         mutate(cons_party = if_else(bridge_name == l2_party, archive_party,        # no changes in last two, so archive_party works
                                 if_else(bridge_name == archive_party, l2_party,    # no changes in archive, so l2_party works

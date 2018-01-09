@@ -320,19 +320,23 @@ change_data <- map_df(countries, function(country) {
             
             change_years <- str_extract_all(notes, "([0-9]{4}\\-[0-9]{4}|[0-9]{4})")
             change_years <- change_years[1:length(change_years)-1] # because of leftover tail of string after splitting
-            change_years <- lapply(change_years, function(x) gsub(pattern="^([0-9]{4})$","\\1-\\1", x))
-            last_year <- lapply(change_years, function(x) gsub(pattern=".*\\-([0-9]{4})$","\\1", x)[length(x)])
+            change_years <- lapply(change_years, function(x) gsub(pattern="^([0-9]{4})$","\\1-\\1", x)) # put single years in yyyy-yyyy format
+            last_years <- lapply(change_years, function(x) gsub(pattern=".*\\-([0-9]{4})$","\\1", x)) #[length(x)])
             change_years <- lapply(change_years, function(x) gsub(pattern="\\-[0-9]{4}$", "", x))
             
-            last_change <- lapply(last_year, function(x) election_years[which(election_years==x)+1])
+            next_changes <- map(last_years, function(x) {map(x, function(xx) election_years[which(election_years==xx)+1])}) 
+            next_changes <- lapply(next_changes, function(x) paste(x, collapse=","))
             
             change_years <- lapply(change_years, function(x) paste(x, collapse=","))
-            change_years <- paste(change_years, last_change, sep=",")
+            change_years <- paste(change_years, next_changes, sep=",")
             change_years <- lapply(change_years, function(x) gsub(pattern="^,","", x)) 
             change_years <- strsplit(as.character(change_years), ",")
             
             changes <- cbind(party=rep(changed_parties, sapply(change_years, length)), year=unlist(change_years), change=1) %>% 
-                as_tibble()
+                as_tibble() %>% 
+                distinct() %>% 
+                arrange(party, year)
+            
         }
         return(changes)
     })

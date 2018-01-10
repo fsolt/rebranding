@@ -478,3 +478,10 @@ write_csv(change_data, "data/change_data.csv")
 save(change_data, file="data/change_data.rda")
 
 
+# Bormann and Golder Democratic Electoral System Data
+des_link <- "http://mattgolder.com/files/research/es_data-v3.zip"
+download.file(des_link, "data/es_data-v3.zip")
+unzip("data/es_data-v3.zip", exdir = "data/es_data-v3") 
+    
+des <- read_csv("data/es_data-v3/es_data-v3.csv")
+

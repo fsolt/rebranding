@@ -22,12 +22,11 @@ first_row_to_names <- function(x) {
 }
 
 correct_for_alliances <- function(df) {
-    # first correct for alliances indicated by merged cells
     correct_merged <- function(df, vote_variable) { 
         seat_variable <- paste0("X", str_extract(vote_variable, "\\d") %>% as.numeric() + 1)
         
-        # fix for alliances indicated by lead cell.  Limited to Spain for time being to ensure it doesn't break preceding countries.
-        if (any(str_detect(df[[seat_variable]], "\\(")) & country == "spain") {
+        # fix for alliances indicated by lead cell (limited by country just to ensure it doesn't break others)
+        if (any(str_detect(df[[seat_variable]], "\\(")) & (country == "spain")) {
             df <- df %>%
                 mutate(vv = df[[vote_variable]],
                        vv1 = df[[vote_variable]],
@@ -42,30 +41,35 @@ correct_for_alliances <- function(df) {
                                     if_else(vv1 == lead(vv1) & vv1 != last(vv1), NA_character_, vv)))
             df[[vote_variable]] <- df$vv
         }
-            
-        alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
-                                   vote_total = rle(df[[vote_variable]])$values)
-        alliance_members2 <- alliance_members[rep(1:nrow(alliance_members),
-                                                  alliance_members$members), ] %>% 
-            mutate(vvv = df[[vote_variable]],
-                   seats = str_extract(df[[seat_variable]], "\\d+") %>% as.numeric(),
-                   a_code = as.numeric(as.factor(df[[vote_variable]]))) %>% 
-            group_by(a_code, members) %>% 
-            mutate(seats = if_else(is.na(seats), 0, seats),
-                   alliance_seats = sum(seats),
-                   votes = if_else(!(alliance_seats == 0 | !str_detect(vvv, "\\d")), 
-                                   suppressWarnings(vote_total %>% 
-                                                        str_trim() %>% 
-                                                        str_replace(",", ".") %>% 
-                                                        str_replace("%", "") %>% 
-                                                        as.numeric() * (seats/alliance_seats)) %>% 
-                                       round(1) %>% 
-                                       as.character(),
-                                   vvv %>% 
-                                       str_trim() %>% 
-                                       str_replace(",", ".") %>% 
-                                       str_replace("%", "")))
-        df[[vote_variable]] <- alliance_members2$votes
+        
+        # correct for alliances indicated by merged cells (limited by country to avoid 'correcting' coincidental similar results)
+        if (country == "bulgaria" | country == "croatia" | country == "greece" |
+            country == "hungary" | country == "portugal" | country == "spain") {
+            alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
+                                       vote_total = rle(df[[vote_variable]])$values)
+            alliance_members2 <- alliance_members[rep(1:nrow(alliance_members),
+                                                      alliance_members$members), ] %>% 
+                mutate(vvv = df[[vote_variable]],
+                       seats = str_extract(df[[seat_variable]], "\\d+") %>% as.numeric(),
+                       a_code = as.numeric(as.factor(df[[vote_variable]]))) %>% 
+                group_by(a_code, members) %>% 
+                mutate(seats = if_else(is.na(seats), 0, seats),
+                       alliance_seats = sum(seats),
+                       votes = if_else(!(alliance_seats == 0 | !str_detect(vvv, "\\d")), 
+                                       suppressWarnings(vote_total %>% 
+                                                            str_trim() %>% 
+                                                            str_replace(",", ".") %>% 
+                                                            str_replace("%", "") %>% 
+                                                            as.numeric() * (seats/alliance_seats)) %>% 
+                                           round(1) %>% 
+                                           as.character(),
+                                       vvv %>% 
+                                           str_trim() %>% 
+                                           str_replace(",", ".") %>% 
+                                           str_replace("%", "")))
+            df[[vote_variable]] <- alliance_members2$votes
+        }
+        
         return(df)
     }
     df <- df %>% 
@@ -187,6 +191,12 @@ change_data <- map_df(countries, function(country) {
                                         (year == 2015 | year == 2016), 
                                     1,
                                     change))
+    }
+    
+    # Fix for two elections in 2011, split between pages, in Switzerland
+    if (country == "switzerland") {
+        last_two <- last_two %>%
+            mutate(election = if_else(year == "2011", "2011b", election))
     }
     
     archive_links <- country_page %>% 

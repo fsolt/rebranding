@@ -193,10 +193,10 @@ change_data <- map_df(countries, function(country) {
                                     change))
     }
     
-    # Fix for two elections in 2011, split between pages, in Switzerland
+    # Fix for duplicated 2011 election in Switzerland
     if (country == "switzerland") {
         last_two <- last_two %>%
-            mutate(election = if_else(year == "2011", "2011b", election))
+            filter(!year == "2011")
     }
     
     archive_links <- country_page %>% 

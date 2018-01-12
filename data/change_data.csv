@@ -1000,25 +1000,7 @@ France,EELV (LV),EELV,LV,NA,NA,NA,NA,NA,2002,2002,4.5,0
 France,EELV (LV),EELV,LV,NA,NA,NA,NA,NA,2007,2007,3.3,0
 France,EELV (LV),EELV,LV,NA,NA,NA,NA,NA,2012,2012,5.5,0
 France,EELV (LV),EELV,LV,NA,NA,NA,NA,NA,2017,2017,4.3,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1945,1945,26.1,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1946,1946,26,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1946.1,1946,28.3,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1951,1951,25.9,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1956,1956,25.4,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1958,1958,19.2,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1962,1962,21.7,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1967,1967,22.5,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1968,1968,20,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1973,1973,21.4,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1978,1978,20.6,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1981,1981,16.2,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1986,1986,9.8,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1988,1988,11.3,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1993,1993,9.2,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,1997,1997,9.9,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,2002,2002,4.8,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,2007,2007,4.3,0
-France,FG (PCF),FG,PCF,NA,NA,NA,NA,NA,2012,2012,6.9,0
+France,FG,FG,NA,NA,NA,NA,NA,NA,2012,2012,6.9,0
 France,FI (PG),FI,PG,NA,NA,NA,NA,NA,2012,2012,0.7,0
 France,FI (PG),FI,PG,NA,NA,NA,NA,NA,2017,2017,11,1
 France,FN,FN,NA,NA,NA,NA,NA,NA,1978,1978,0.8,0
@@ -1066,6 +1048,24 @@ France,MRP,MRP,NA,NA,NA,NA,NA,NA,1951,1951,12.5,0
 France,MRP,MRP,NA,NA,NA,NA,NA,NA,1956,1956,10.9,0
 France,MRP,MRP,NA,NA,NA,NA,NA,NA,1958,1958,11.1,0
 France,MRP,MRP,NA,NA,NA,NA,NA,NA,1962,1962,9.1,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1945,1945,26.1,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1946,1946,26,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1946.1,1946,28.3,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1951,1951,25.9,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1956,1956,25.4,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1958,1958,19.2,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1962,1962,21.7,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1967,1967,22.5,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1968,1968,20,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1973,1973,21.4,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1978,1978,20.6,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1981,1981,16.2,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1986,1986,9.8,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1988,1988,11.3,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1993,1993,9.2,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,1997,1997,9.9,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,2002,2002,4.8,0
+France,PCF,PCF,NA,NA,NA,NA,NA,NA,2007,2007,4.3,0
 France,PCF,PCF,NA,NA,NA,NA,NA,NA,2012,2012,4.8,0
 France,PCF,PCF,NA,NA,NA,NA,NA,NA,2017,2017,2.7,0
 France,PRG,PRG,NA,NA,NA,NA,NA,NA,2012,2012,1.7,0
@@ -3043,154 +3043,154 @@ Switzerland,SVP (Small Trade and Citizens' Party),SVP,Small Trade and Citizens' 
 Switzerland,SVP (Small Trade and Citizens' Party),SVP,Small Trade and Citizens' Party,NA,NA,NA,NA,NA,2007,2007,29,0
 Switzerland,SVP (Small Trade and Citizens' Party),SVP,Small Trade and Citizens' Party,NA,NA,NA,NA,NA,2011,2011,26.6,0
 Switzerland,SVP (Small Trade and Citizens' Party),SVP,Small Trade and Citizens' Party,NA,NA,NA,NA,NA,2015,2015,29.4,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1945,1945,36.2,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1950,1950,40,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1951,1951,44.3,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1955,1955,49.7,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1959,1959,46.6,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1964,1964,42.2,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1966,1966,41.3,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1970,1970,46.4,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1974,1974,37.8,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1974.1,1974,35.8,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1979,1979,43.9,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1983,1983,42.4,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1987,1987,42.3,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1992,1992,41.9,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,1997,1997,30.6,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,2001,2001,31.7,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,2005,2005,32.3,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,2010,2010,36.1,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,2015,2015,36.9,0
-United Kingdom of Great Britain and Northern Ireland,CON,CON,NA,NA,NA,NA,NA,NA,2017,2017,42.4,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,1974,1974,0.2,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,1974.1,1974,0.2,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,1979,1979,0.3,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,1983,1983,0.5,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,1987,1987,0.3,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,1992,1992,0.3,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,1997,1997,0.3,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,2001,2001,0.7,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,2005,2005,0.9,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,2010,2010,0.6,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,2015,2015,0.6,0
-United Kingdom of Great Britain and Northern Ireland,DUP,DUP,NA,NA,NA,NA,NA,NA,2017,2017,0.9,0
-United Kingdom of Great Britain and Northern Ireland,GP,GP,NA,NA,NA,NA,NA,NA,2015,2015,3.8,0
-United Kingdom of Great Britain and Northern Ireland,GP,GP,NA,NA,NA,NA,NA,NA,2017,2017,1.6,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1945,1945,47.7,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1950,1950,46.1,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1951,1951,48.8,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1955,1955,46.4,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1959,1959,43.8,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1964,1964,44.1,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1966,1966,47.9,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1970,1970,43,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1974,1974,37.1,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1974.1,1974,39.2,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1979,1979,37,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1983,1983,27.6,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1987,1987,30.8,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1992,1992,34.4,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,1997,1997,43.2,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,2001,2001,40.7,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,2005,2005,35.2,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,2010,2010,29,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,2015,2015,30.4,0
-United Kingdom of Great Britain and Northern Ireland,LAB,LAB,NA,NA,NA,NA,NA,NA,2017,2017,40,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1945,1945,9,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1950,1950,9.1,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1951,1951,2.5,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1955,1955,2.7,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1959,1959,5.9,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1964,1964,11.2,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1966,1966,8.5,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1970,1970,7.5,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1974,1974,19.3,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1974.1,1974,18.3,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1979,1979,13.8,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1983,1983,25.4,1
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1987,1987,22.6,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1992,1992,17.8,1
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1997,1997,16.7,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2001,2001,18.3,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2005,2005,22,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2010,2010,23,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2015,2015,7.9,0
-United Kingdom of Great Britain and Northern Ireland,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2017,2017,7.4,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1959,1959,0.3,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1964,1964,0.3,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1966,1966,0.2,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1970,1970,0.6,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1974,1974,0.6,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1974.1,1974,0.6,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1979,1979,0.4,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1983,1983,0.4,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1987,1987,0.3,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1992,1992,0.4,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,1997,1997,0.5,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,2001,2001,0.7,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,2005,2005,0.6,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,2010,2010,0.6,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,2015,2015,0.6,0
-United Kingdom of Great Britain and Northern Ireland,PC,PC,NA,NA,NA,NA,NA,NA,2017,2017,0.5,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1974,1974,0.5,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1974.1,1974,0.5,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1979,1979,0.5,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1983,1983,0.5,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1987,1987,0.5,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1992,1992,0.6,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1997,1997,0.6,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2001,2001,0.6,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2005,2005,0.5,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2010,2010,0.4,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2015,2015,0.3,0
-United Kingdom of Great Britain and Northern Ireland,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2017,2017,0.3,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1950,1950,0.1,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1951,1951,0,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1955,1955,0.6,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1959,1959,0.2,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1964,1964,0,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1966,1966,0,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1970,1970,0,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1974,1974,0,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1974.1,1974,0,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1979,1979,0,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1983,1983,0.3,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1987,1987,0.3,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1992,1992,0.2,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,1997,1997,0.4,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,2001,2001,0.7,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,2005,2005,0.6,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,2010,2010,0.6,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,2015,2015,0.6,0
-United Kingdom of Great Britain and Northern Ireland,SF,SF,NA,NA,NA,NA,NA,NA,2017,2017,0.7,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1959,1959,0.1,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1964,1964,0.2,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1966,1966,0.2,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1970,1970,1.1,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1974,1974,2,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1974.1,1974,2.9,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1979,1979,1.6,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1983,1983,1.1,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1987,1987,1.2,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1992,1992,1.8,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,1997,1997,2,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,2001,2001,1.8,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,2005,2005,1.5,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,2010,2010,1.7,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,2015,2015,4.7,0
-United Kingdom of Great Britain and Northern Ireland,SNP,SNP,NA,NA,NA,NA,NA,NA,2017,2017,3,0
-United Kingdom of Great Britain and Northern Ireland,UKIP,UKIP,NA,NA,NA,NA,NA,NA,2015,2015,12.6,0
-United Kingdom of Great Britain and Northern Ireland,UKIP,UKIP,NA,NA,NA,NA,NA,NA,2017,2017,1.8,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1974,1974,0.8,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1974.1,1974,0.8,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1979,1979,0.9,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1983,1983,0.9,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1987,1987,0.9,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1992,1992,0.8,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1997,1997,0.8,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2001,2001,0.8,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2005,2005,0.5,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2010,2010,0.3,1
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2015,2015,0.4,0
-United Kingdom of Great Britain and Northern Ireland,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2017,2017,0.3,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1945,1945,36.2,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1950,1950,40,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1951,1951,44.3,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1955,1955,49.7,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1959,1959,46.6,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1964,1964,42.2,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1966,1966,41.3,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1970,1970,46.4,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1974,1974,37.8,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1974.1,1974,35.8,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1979,1979,43.9,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1983,1983,42.4,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1987,1987,42.3,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1992,1992,41.9,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,1997,1997,30.6,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,2001,2001,31.7,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,2005,2005,32.3,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,2010,2010,36.1,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,2015,2015,36.9,0
+United Kingdom,CON,CON,NA,NA,NA,NA,NA,NA,2017,2017,42.4,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,1974,1974,0.2,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,1974.1,1974,0.2,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,1979,1979,0.3,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,1983,1983,0.5,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,1987,1987,0.3,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,1992,1992,0.3,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,1997,1997,0.3,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,2001,2001,0.7,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,2005,2005,0.9,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,2010,2010,0.6,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,2015,2015,0.6,0
+United Kingdom,DUP,DUP,NA,NA,NA,NA,NA,NA,2017,2017,0.9,0
+United Kingdom,GP,GP,NA,NA,NA,NA,NA,NA,2015,2015,3.8,0
+United Kingdom,GP,GP,NA,NA,NA,NA,NA,NA,2017,2017,1.6,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1945,1945,47.7,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1950,1950,46.1,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1951,1951,48.8,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1955,1955,46.4,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1959,1959,43.8,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1964,1964,44.1,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1966,1966,47.9,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1970,1970,43,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1974,1974,37.1,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1974.1,1974,39.2,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1979,1979,37,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1983,1983,27.6,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1987,1987,30.8,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1992,1992,34.4,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,1997,1997,43.2,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,2001,2001,40.7,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,2005,2005,35.2,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,2010,2010,29,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,2015,2015,30.4,0
+United Kingdom,LAB,LAB,NA,NA,NA,NA,NA,NA,2017,2017,40,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1945,1945,9,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1950,1950,9.1,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1951,1951,2.5,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1955,1955,2.7,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1959,1959,5.9,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1964,1964,11.2,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1966,1966,8.5,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1970,1970,7.5,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1974,1974,19.3,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1974.1,1974,18.3,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1979,1979,13.8,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1983,1983,25.4,1
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1987,1987,22.6,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1992,1992,17.8,1
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,1997,1997,16.7,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2001,2001,18.3,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2005,2005,22,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2010,2010,23,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2015,2015,7.9,0
+United Kingdom,"LD (LIB, SDP-LIB)",LD,LIB, SDP-LIB,NA,NA,NA,NA,2017,2017,7.4,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1959,1959,0.3,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1964,1964,0.3,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1966,1966,0.2,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1970,1970,0.6,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1974,1974,0.6,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1974.1,1974,0.6,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1979,1979,0.4,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1983,1983,0.4,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1987,1987,0.3,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1992,1992,0.4,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,1997,1997,0.5,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,2001,2001,0.7,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,2005,2005,0.6,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,2010,2010,0.6,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,2015,2015,0.6,0
+United Kingdom,PC,PC,NA,NA,NA,NA,NA,NA,2017,2017,0.5,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1974,1974,0.5,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1974.1,1974,0.5,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1979,1979,0.5,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1983,1983,0.5,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1987,1987,0.5,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1992,1992,0.6,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,1997,1997,0.6,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2001,2001,0.6,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2005,2005,0.5,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2010,2010,0.4,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2015,2015,0.3,0
+United Kingdom,SDLP,SDLP,NA,NA,NA,NA,NA,NA,2017,2017,0.3,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1950,1950,0.1,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1951,1951,0,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1955,1955,0.6,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1959,1959,0.2,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1964,1964,0,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1966,1966,0,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1970,1970,0,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1974,1974,0,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1974.1,1974,0,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1979,1979,0,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1983,1983,0.3,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1987,1987,0.3,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1992,1992,0.2,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,1997,1997,0.4,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,2001,2001,0.7,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,2005,2005,0.6,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,2010,2010,0.6,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,2015,2015,0.6,0
+United Kingdom,SF,SF,NA,NA,NA,NA,NA,NA,2017,2017,0.7,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1959,1959,0.1,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1964,1964,0.2,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1966,1966,0.2,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1970,1970,1.1,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1974,1974,2,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1974.1,1974,2.9,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1979,1979,1.6,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1983,1983,1.1,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1987,1987,1.2,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1992,1992,1.8,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,1997,1997,2,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,2001,2001,1.8,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,2005,2005,1.5,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,2010,2010,1.7,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,2015,2015,4.7,0
+United Kingdom,SNP,SNP,NA,NA,NA,NA,NA,NA,2017,2017,3,0
+United Kingdom,UKIP,UKIP,NA,NA,NA,NA,NA,NA,2015,2015,12.6,0
+United Kingdom,UKIP,UKIP,NA,NA,NA,NA,NA,NA,2017,2017,1.8,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1974,1974,0.8,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1974.1,1974,0.8,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1979,1979,0.9,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1983,1983,0.9,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1987,1987,0.9,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1992,1992,0.8,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,1997,1997,0.8,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2001,2001,0.8,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2005,2005,0.5,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2010,2010,0.3,1
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2015,2015,0.4,0
+United Kingdom,UUP (UCU),UUP,UCU,NA,NA,NA,NA,NA,2017,2017,0.3,0

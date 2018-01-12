@@ -385,6 +385,12 @@ change_data <- map_df(countries, function(country) {
         mutate(party = if_else(is.na(party), party1, party),
                change = if_else(is.na(change), 0L, as.integer(change)))
     
+    if (country == "france") {
+        c_data0 <- c_data0 %>% 
+            mutate(party = str_replace(party, "FG \\(PCF\\)", "PCF"),
+                   party1 = str_replace(party1, "FG", "PCF"))
+    }
+    
     bridge <- c_data0 %>% 
         transmute(bridge_name = str_extract(party, "^[^(\\s]*") %>% 
                       str_replace("OPEN", "OPEN VLD") %>% 
@@ -592,44 +598,21 @@ pg$party_name_short[pg$country_name=="Croatia" & pg$party_name_short=="ZiZi"] <-
 
 # Cyprus Parlgov data starts in 1976; done
 pg$party_name_short[pg$country_name=="Cyprus" & pg$party_name_short=="EK"] <- "EVROKO"
-pg$party_name_short[pg$country_name=="Cyprus" & pg$party_name_short=="ED"] <- "EDI"
 
 # Czech Republic done
-pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="DU"] <- "DEU"
-pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="HSD/SMS"] <- "HSD-SMS"
-pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="US/DEU"] <- "US-DEU"
 pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="KSCM" & pg$year==1992] <- "LB"
-pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="KDU/CSL"] <- "KDU-CSL"
-pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="SPR/RSC"] <- "SPR-RSC"
 
 # Denmark done
-pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="RF"] <- "DR"
-pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="Sd"] <- "S"
-pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="KrF"] <- "KRF"
-pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="FrP"] <- "FRP"
-pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="Enh"] <- "EL"
-pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="NLA"] <- "NA"
+pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="En-O"] <- "EL"
 
 # Estonia done
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EK"] <- "K"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="ResP"] <- "RP"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EPL"] <- "EPPL"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="V"] <- "VV"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="OIG"] <- "O"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="MKE"] <- "MKOE"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EKK"] <- "KE"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="RKI/ERSP"] <- "IERSP"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EKo"] <- "EK"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="RKI"] <- "I"
-pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="ERe"] <- "RE"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="ERP"] <- "RP"
 
 # France done
-pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="G"] <- "UG"
-pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="IR"] <- "RI"
-pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="MF"] <- "MPF"
-pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="PRL"] <- "M"
-pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="V"] <- "LV"
-pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="PRR/RS"] <- "RGR"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="UMP|LR"] <- "LR"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="UG"] <- "UDR"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="UDF|MD"] <- "MoDem"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="IR|DL"] <- "RI"
 
 # Finland done
 pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="L"] <- "LIB"

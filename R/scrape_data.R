@@ -532,6 +532,7 @@ last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/
     select(-election_id)
 
 pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_election.csv") %>% 
+    filter(election_type == "parliament") %>% 
     select(election_id, previous_cabinet_id, election_date) %>% 
     distinct() %>% 
     left_join(last_cabinet, by = "previous_cabinet_id") %>% 
@@ -615,55 +616,39 @@ pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="UDF|MD"] <
 pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="IR|DL"] <- "RI"
 
 # Finland done
-pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="L"] <- "LIB"
-pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="SP-P"] <- "PS"
-pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="SSDP"] <- "SDP"
-pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="RKP-SFP"] <- "SFP"
-pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="Deva"] <- "DEVA"
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="KE|SLK"] <- "LIB"
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="SP|P"] <- "PS"
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="DL|VAS"] <- "VAS"
 
 # Germany done
-pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Grue"] <- "GRUNE"
-pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Linke"] <- "LINKE"
-pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Rep"] <- "REP"
-pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Zentrum"] <- "ZENTRUM"
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="B90/Gru"] <- "GRUNE"
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="B90/Gr"] <- "GRUNE"
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="CDU+CSU"] <- "CDU"
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Li/PDS"] <- "LINKE"
 
 # Greece Parlgov data starts in 1974; done
-pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="SRA"] <- "SYRIZA"
-pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="POLAN"] <- "POLA"
-pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="AE"] <- "ANEL"
-pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="LS-CA"] <- "ChA"
+pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="TP"] <- "TO POTAMI"
+pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="ChA"] <- "XA"
 
 # Hungary done
-pg$party_name_short[pg$country_name=="Hungary"] <- gsub(pattern="Fides.*", replacement="FIDESZ", x= pg$party_name_short[pg$country_name=="Hungary"])
-pg$party_name_short[pg$country_name=="Hungary"] <- toupper(pg$party_name_short[pg$country_name=="Hungary"])
-pg$party_name_short[pg$country_name=="Hungary" & pg$party_name_short=="MM"] <- "MKMP"
-pg$party_name_short[pg$country_name=="Hungary" & pg$party_name_short=="MIEP-JOBBIK"] <- "JOBBIK"
+pg$party_name_short[pg$country_name=="Hungary" & pg$party_name_short=="EGYUTT"] <- "E14"
+pg$party_name_short[pg$country_name=="Hungary" & pg$party_name_short=="FI-MPSZ"] <- "FIDESZ"
 
 # Iceland done
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="A"] <- "AF"
 pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Ab"] <- "AB"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="B"] <- "BF1"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Bf"] <- "BF2"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="BJ"] <- "SDU"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="F"] <- "FSF"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Ff"] <- "FF"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Graen"] <- "VG"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sam"] <- "S"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sj"] <- "SSF"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sk"] <- "SK"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sfvm"] <- "SF"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="So"] <- "AB"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="ThFf"] <- "TV"
-pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Thva"] <- "NP"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="B-H"] <- "BF2"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Bf-87"] <- "BF3"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="SDU"] <- "BJ"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Th-Ff"] <- "TV"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Pi"] <- "P"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="SF"] <- "SFVM"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="KL"] <- "SK"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="V"] <- "VIÐREISN"
 
 # Ireland done
-pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Lab"] <- "LAB"
-pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="CnP"] <- "CnaP"
-pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="CnT"] <- "CnaT"
-pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="DLP"] <- "DL"
-pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Greens"] <- "GP"
-pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Lab"] <- "LAB"
-pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Lab"] <- "LAB"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="PBPA"] <- "AAA-PBP"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Green"] <- "GP"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="DS"] <- "SD"
 
 # Italy done
 pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="DL-M"] <- "DL"

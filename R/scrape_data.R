@@ -173,6 +173,12 @@ change_data <- map_df(countries, function(country) {
                                      str_extract(party, "(?<=\\()(.*)(?=\\))"),
                                      party))
     
+    # Fix continuity problems for Cyprus
+    if (country == "cyprus") {
+        last_two <- last_two %>%
+            mutate(bridge_name = if_else(party == "KS-EDEK (EDEK)", "KS-EDEK", bridge_name))
+    }
+    
     # Fix continuity problems for Romania
     if (country == "romania") {
         last_two <- last_two %>%
@@ -448,16 +454,17 @@ change_data0 <- change_data
 
 max_names <- change_data0 %>% 
     pull(party) %>% 
-    strsplit("( \\()|,") %>% 
+    strsplit("( \\()|,|\\)") %>% 
     map_int(~ length(.x)) %>% 
     max()
 
 change_data <- change_data0 %>% 
-    mutate(party = str_replace(party, "Ö", "O") %>% 
+    mutate(country = countrycode::countrycode(country, "country.name", "country.name") %>% 
+               if_else(str_detect(., "Kingdom"), "United Kingdom", .),
+           party = str_replace(party, "Ö", "O") %>% 
                str_replace("Ü", "U") %>% 
                str_replace("\\+([A-Z])", "-\\1") %>% 
-               str_replace(",+", ",")
-           ) %>% 
+               str_replace(",+", ",")) %>% 
     group_by(country, party) %>% 
     mutate(running_vote = cumsum(vote_share)) %>% 
     filter(!running_vote == 0) %>% # drop party-elections when party has not yet received any votes (not formed yet)
@@ -468,10 +475,11 @@ change_data <- change_data0 %>%
     select(-running_vote) %>% 
     ungroup() %>% 
     arrange(country, party, year) %>% 
+    select(-matches("name\\d")) %>% 
     # create variables capturing every acronym the party has ever had separately
-    separate(party, into = paste0("name", 1:max_names), sep = "( \\()|,|\\)", remove = FALSE, fill = "right") %>% 
+    separate(party, into = paste0("name", 1:(max_names+1)), sep = "( \\()|,|\\)", remove = FALSE, fill = "right") %>% 
     mutate_at(vars(matches("name\\d+")), funs(if_else(. == "", NA_character_, .))) %>% 
-    select(-matches(paste0("name", max_names)))
+    select(-matches(paste0("name", max_names+1)))
 
 # save
 write_csv(change_data, "data/change_data.csv")
@@ -483,3 +491,312 @@ des_link <- "http://mattgolder.com/files/research/es_data-v3.zip"
 download.file(des_link, "data/es_data-v3.zip")
 unzip("data/es_data-v3.zip", exdir = "data/es_data-v3") 
 
+es <- read_csv("../data/es_data-v3/es_data-v3.csv") %>% 
+    mutate(country = str_replace(country, "West Germany", "Germany") %>% 
+               countrycode::countrycode("country.name", "country.name"))
+
+left_join()
+
+
+# ParlGov
+
+
+
+# ParlGov
+#Get ParlGov data
+parlgov_link <- "http://www.parlgov.org/static/stable/2015/parlgov-stable.xlsx"
+download.file(parlgov_link, "data/parlgov2015_stable.xlsx")
+pg_party <- readxl::read_excel("data/parlgov2015_stable.xlsx", sheet = "party")
+
+enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_election_parameter.csv") %>% 
+    transmute(election_id = election_id,
+              enep = enp_votes)
+
+last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv") %>% 
+    arrange(country_name, election_date, start_date) %>% 
+    group_by(country_name, election_id) %>% 
+    filter(start_date == max(start_date)) %>% 
+    transmute(previous_cabinet_id = cabinet_id,
+              party_id = party_id,
+              party_name_short = party_name_short,
+              party_name_english = party_name_english,
+              prime_minister_last = prime_minister,
+              cabinet_party_last = cabinet_party) %>% 
+    ungroup() %>% 
+    select(-election_id)
+
+pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_election.csv") %>% 
+    select(election_id, previous_cabinet_id, election_date) %>% 
+    distinct() %>% 
+    left_join(last_cabinet, by = "previous_cabinet_id") %>% 
+    left_join(enep, by = "election_id") %>% 
+    mutate(country = countrycode::countrycode(country_name, "country.name", "country.name"),
+           year = lubridate::year(election_date)) %>% 
+    filter(country %in% (countries %>% countrycode::countrycode("country.name", "country.name"))) %>% 
+    mutate(country = if_else(str_detect(country, "Kingdom"), "United Kingdom", country),
+           party_name_short = if_else(party_name_short=="Gruene", "GRUNE", party_name_short))
+
+problems <- function(x) {
+    pg.c <- pg[pg$country_name==x,c("party_name_short", "party_name_english", "vote_share", "year")]
+    pg.c$index <- with(pg.c, interaction(party_name_short, year))
+    cd.c1 <- change.data[change.data$country==x,c("party", "votes", "year")]
+    cd.c1$cd <- 1
+    cd.c1$index <- with(cd.c1, interaction(party, year))
+    cd.c2 <- change3[change3$country==x,c("party", "votes", "year")]
+    cd.c2$index <- with(cd.c2, interaction(party, year))
+    cd.c.ex <- subset(cd.c1, !(index %in% cd.c2$index))
+    cd.c.ex$votes1 <- round(cd.c.ex$votes)
+    pg.c.ex <- subset(pg.c, !(index %in% cd.c2$index))
+    pg.c.ex$votes1 <- round(pg.c.ex$vote_share)
+    c.try <- merge(cd.c.ex[,-5], pg.c.ex[,-5], by.x=c("votes1", "year"), by.y=c("votes1", "year"))
+    
+    View(c.try)
+    View(cd.c.ex[cd.c.ex$votes!=0 & cd.c.ex$year>1950,])
+    View(pg.c.ex[pg.c.ex$votes!=0 & pg.c.ex$year>1950,])
+    View(pg.c)
+    
+    names(table(change.data$party[change.data$country==x]))[!names(table(change.data$party[change.data$country==x])) %in% names(table(change3$party[change3$country==x]))]
+}
+
+problems <- function(c) {
+    pg %>% filter(country == c) %>% select(party_name_short) %>% distinct()
+    change_data %>% filter(country == c) %>% select(party) %>% distinct()
+    anti_join(x1, x2, by = c("party_name_short" = "party"))
+}
+
+# Austria done
+
+# Belgium done
+pg$party_name_short[pg$country_name=="Belgium" & pg$party_name_short=="BSP-PSB"] <- "BSP/PSB"
+pg$party_name_short[pg$country_name=="Belgium" & pg$party_name_short=="CVP"] <- "CVP/PSC"
+pg$party_name_short[pg$country_name=="Belgium" & pg$party_name_short=="Ecolo"] <- "ECOLO"
+pg$party_name_short[pg$country_name=="Belgium" & pg$party_name_short=="AGL-Gr"] <- "GROEN"
+pg$party_name_short[pg$country_name=="Belgium" & pg$party_name_short=="KPB-PCB"] <- "KPB/PCB"
+pg$party_name_short[pg$country_name=="Belgium" & pg$party_name_short=="LD|LDD"] <- "LDD"
+pg$party_name_short[pg$country_name=="Belgium" & pg$party_name_short=="Pp"] <- "PP"
+
+# Bulgaria Parlgov data starts in 1991; done
+pg$party_name_short[pg$country_name=="Bulgaria" & pg$party_name_short=="Ataka"] <- "ATAKA"
+pg$party_name_short[pg$country_name=="Bulgaria" & pg$party_name_short=="KzB|DL"] <- "KB"
+pg$party_name_short[pg$country_name=="Bulgaria" & pg$party_name_short=="ZS-AS"] <- "BZNS-AS"
+pg$party_name_short[pg$country_name=="Bulgaria" & pg$party_name_short=="ZNS"] <- "BZNS"
+pg$party_name_short[pg$country_name=="Bulgaria" & pg$party_name_short=="BNS"] <- "NS"
+
+# Croatia done
+pg$party_name_short[pg$country_name=="Croatia" & pg$party_name_short=="HDSS"] <- "HDS"
+pg$party_name_short[pg$country_name=="Croatia" & pg$party_name_short=="MB"] <- "MB365"
+pg$party_name_short[pg$country_name=="Croatia" & pg$party_name_short=="Most"] <- "MOST"
+pg$party_name_short[pg$country_name=="Croatia" & pg$party_name_short=="NS"] <- "NSR"
+pg$party_name_short[pg$country_name=="Croatia" & pg$party_name_short=="SPH"] <- "SDP"
+pg$party_name_short[pg$country_name=="Croatia" & pg$party_name_short=="ZiZi"] <- "ZZ"
+
+# Cyprus Parlgov data starts in 1976; done
+pg$party_name_short[pg$country_name=="Cyprus" & pg$party_name_short=="EK"] <- "EVROKO"
+pg$party_name_short[pg$country_name=="Cyprus" & pg$party_name_short=="ED"] <- "EDI"
+
+# Czech Republic done
+pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="DU"] <- "DEU"
+pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="HSD/SMS"] <- "HSD-SMS"
+pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="US/DEU"] <- "US-DEU"
+pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="KSCM" & pg$year==1992] <- "LB"
+pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="KDU/CSL"] <- "KDU-CSL"
+pg$party_name_short[pg$country_name=="Czech Republic" & pg$party_name_short=="SPR/RSC"] <- "SPR-RSC"
+
+# Denmark done
+pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="RF"] <- "DR"
+pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="Sd"] <- "S"
+pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="KrF"] <- "KRF"
+pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="FrP"] <- "FRP"
+pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="Enh"] <- "EL"
+pg$party_name_short[pg$country_name=="Denmark" & pg$party_name_short=="NLA"] <- "NA"
+
+# Estonia done
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EK"] <- "K"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="ResP"] <- "RP"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EPL"] <- "EPPL"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="V"] <- "VV"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="OIG"] <- "O"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="MKE"] <- "MKOE"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EKK"] <- "KE"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="RKI/ERSP"] <- "IERSP"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="EKo"] <- "EK"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="RKI"] <- "I"
+pg$party_name_short[pg$country_name=="Estonia" & pg$party_name_short=="ERe"] <- "RE"
+
+# France done
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="G"] <- "UG"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="IR"] <- "RI"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="MF"] <- "MPF"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="PRL"] <- "M"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="V"] <- "LV"
+pg$party_name_short[pg$country_name=="France" & pg$party_name_short=="PRR/RS"] <- "RGR"
+
+# Finland done
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="L"] <- "LIB"
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="SP-P"] <- "PS"
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="SSDP"] <- "SDP"
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="RKP-SFP"] <- "SFP"
+pg$party_name_short[pg$country_name=="Finland" & pg$party_name_short=="Deva"] <- "DEVA"
+
+# Germany done
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Grue"] <- "GRUNE"
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Linke"] <- "LINKE"
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Rep"] <- "REP"
+pg$party_name_short[pg$country_name=="Germany" & pg$party_name_short=="Zentrum"] <- "ZENTRUM"
+
+# Greece Parlgov data starts in 1974; done
+pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="SRA"] <- "SYRIZA"
+pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="POLAN"] <- "POLA"
+pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="AE"] <- "ANEL"
+pg$party_name_short[pg$country_name=="Greece" & pg$party_name_short=="LS-CA"] <- "ChA"
+
+# Hungary done
+pg$party_name_short[pg$country_name=="Hungary"] <- gsub(pattern="Fides.*", replacement="FIDESZ", x= pg$party_name_short[pg$country_name=="Hungary"])
+pg$party_name_short[pg$country_name=="Hungary"] <- toupper(pg$party_name_short[pg$country_name=="Hungary"])
+pg$party_name_short[pg$country_name=="Hungary" & pg$party_name_short=="MM"] <- "MKMP"
+pg$party_name_short[pg$country_name=="Hungary" & pg$party_name_short=="MIEP-JOBBIK"] <- "JOBBIK"
+
+# Iceland done
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="A"] <- "AF"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Ab"] <- "AB"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="B"] <- "BF1"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Bf"] <- "BF2"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="BJ"] <- "SDU"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="F"] <- "FSF"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Ff"] <- "FF"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Graen"] <- "VG"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sam"] <- "S"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sj"] <- "SSF"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sk"] <- "SK"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Sfvm"] <- "SF"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="So"] <- "AB"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="ThFf"] <- "TV"
+pg$party_name_short[pg$country_name=="Iceland" & pg$party_name_short=="Thva"] <- "NP"
+
+# Ireland done
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Lab"] <- "LAB"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="CnP"] <- "CnaP"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="CnT"] <- "CnaT"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="DLP"] <- "DL"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Greens"] <- "GP"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Lab"] <- "LAB"
+pg$party_name_short[pg$country_name=="Ireland" & pg$party_name_short=="Lab"] <- "LAB"
+
+# Italy done
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="DL-M"] <- "DL"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="IdV"] <- "IDV"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="LDFT"] <- "LD-FT"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="PSUP"] <- "PSIUP"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="PdCI"] <- "PDCI"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="R"] <- "RAD"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="FdV"] <- "VERDI"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="LR"] <- "RETE"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="MpA"] <- "MPA"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="FUQ"] <- "UQ"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="IPdL"] <- "PDL"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="Ulivo"] <- "ULIVO"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="UdC"] <- "UDC"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="LUP"] <- "PRODI"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="CCD/CDU"] <- "CCD-CDU"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="LSLA"] <- "SA"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_english=="Segni Pact"] <- "SEGNI"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="PDIUM"] <- "PNM"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="PpP"] <- "PRODI"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="Giras"] <- "GS"
+pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="PdUP"] <- "DP"
+
+# Latvia done
+pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="TKL-ZP"] <- "TKL"
+pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="KPSS"] <- "LKP"
+pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="LSA"] <- "LSDA"
+pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="LZS/KDS"] <- "KDS"
+
+# Lithuania done
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_english=="Lithuanian Liberty Union"] <- "LLL"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="AWPL"] <- "LLRA"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="SK"] <- "S"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="L/L/L"] <- "LKDP"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="BSDK"] <- "SDK"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="VP/NDP"] <- "VNDS"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="TT-LDP"] <- "TT" 
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="RPk"] <- "TT" 
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="JL"] <- "LTJS" 
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="JL/PKS"] <- "LTJS" 
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="LLRA"] <- "AWPL" 
+
+# Luxembourg done
+pg$year[pg$country_name=="Luxembourg" & pg$year==1968] <- 1969 
+pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="Greng" & pg$year==1984] <- "GAP"
+pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="Greng"] <- "GRÉNG" 
+pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="DL"] <- "LÉNK" 
+pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="MPI"] <- "MIP" 
+
+# Malta done
+pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="MLP"] <- "PL" 
+pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="DA"] <- "AD" 
+pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="CWP"] <- "PHN" 
+pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="DNP"] <- "PDN" 
+
+# Netherlands done
+pg$party_name_short[pg$country_name=="Netherlands" & pg$party_name_short=="Bp"] <- "BP" 
+
+# Norway done
+pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Kp"] <- "NKP" 
+pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Sp"] <- "SP" 
+pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="KrF"] <- "KRF" 
+pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Fr"] <- "FRP" 
+pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Kp"] <- "NKP" 
+
+# Poland done
+pg$party_name_short[pg$country_name=="Poland" & pg$party_name_short=="UD"] <- "DU" 
+pg$party_name_short[pg$country_name=="Poland" & pg$party_name_short=="PCD"] <- "PChD" 
+pg$party_name_short[pg$country_name=="Poland" & pg$party_name_short=="O"] <- "KKWO" 
+
+# Portugal done
+
+# Romania done
+pg$party_name_short[pg$country_name=="Romania" & pg$party_name_short=="etnice"] <- "Minorities" 
+pg$party_name_short[pg$country_name=="Romania" & pg$party_name_short=="PNT-CD"] <- "PNTCD" 
+pg$party_name_short[pg$country_name=="Romania" & pg$party_name_short=="AUL"] <- "AUR"
+pg$party_name_short[pg$country_name=="Romania" & pg$party_name_short=="PAC" & pg$year==1996] <- "ANL" 
+
+# Slovakia done
+pg$party_name_short[pg$country_name=="Slovakia" & pg$party_name_short=="SMK-MKP"] <- "MKP" 
+pg$party_name_short[pg$country_name=="Slovakia" & pg$party_name_short=="DuS"] <- "DU" 
+pg$party_name_short[pg$country_name=="Slovakia" & pg$party_name_short=="SaS"] <- "SAS" 
+pg$party_name_short[pg$country_name=="Slovakia" & pg$party_name_short=="ESWS"] <- "MKDH-ES" 
+pg$party_name_short[pg$country_name=="Slovakia" & pg$party_name_short=="Smer"] <- "SMER-SD" 
+
+# Slovenia
+pg$party_name_short[pg$country_name=="Slovenia" & pg$party_name_short=="DS"] <- "DSS" 
+pg$party_name_short[pg$country_name=="Slovenia" & pg$party_name_short=="DeSUS"] <- "DESUS" 
+pg$party_name_short[pg$country_name=="Slovenia" & pg$party_name_short=="Zares"] <- "ZARES" 
+pg$party_name_short[pg$country_name=="Slovenia" & pg$party_name=="Social Liberal Party"] <- "DSS" 
+pg$party_name_short[pg$country_name=="Slovenia" & pg$party_name_short=="SsS"] <- "SSS" 
+
+# Spain done
+pg$party_name_short[pg$country_name=="Spain" & pg$party_name_short=="PNV"] <- "EAJ-PNV" 
+pg$party_name_short[pg$country_name=="Spain" & pg$party_name_short=="UPyD"] <- "UPD" 
+
+# Sweden done
+pg$party_name_short[pg$country_name=="Sweden" & pg$party_name_short=="SAP"] <- "S" 
+pg$party_name_short[pg$country_name=="Sweden" & pg$party_name_short=="NyD"] <- "ND" 
+
+# Switzerland done
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="CsP-PCS"] <- "CSP" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="NA-AN"] <- "NA" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="SVP"] <- "BGB" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="SVP-UDC"] <- "SVP" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="CVP-PDC"] <- "CVP" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="EVP-PEP"] <- "EVP" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="FDP-PRD"] <- "FDP" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="SP-PS"] <- "SP" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="LdU-ADI"] <- "LdU" 
+pg$party_name_short[pg$country_name=="Switzerland" & pg$party_name_short=="SVP"] <- "BGB" 
+
+# United Kingdom done
+pg$party_name_short[pg$country_name=="United Kingdom" & pg$party_name_short=="Con"] <- "CON" 
+pg$party_name_short[pg$country_name=="United Kingdom" & pg$party_name_short=="C/NL"] <- "CON" 
+pg$party_name_short[pg$country_name=="United Kingdom" & pg$party_name_short=="Lib"] <- "LIB" 
+pg$party_name_short[pg$country_name=="United Kingdom" & pg$party_name_short=="Alliance"] <- "SDP-LIB" 
+pg$party_name_short[pg$country_name=="United Kingdom" & pg$party_name_short=="Plaid"] <- "PC" 

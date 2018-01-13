@@ -544,35 +544,12 @@ pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_elect
            year = lubridate::year(election_date)) %>% 
     filter(country %in% (countries %>% countrycode::countrycode("country.name", "country.name"))) %>% 
     mutate(country = if_else(str_detect(country, "Kingdom"), "United Kingdom", country),
-           party_name_short = if_else(party_name_short=="Gruene", "GRUNE", party_name_short))
+           party_name_short = if_else(party_name_short=="Gruene", "GRUNE", party_name_short)) %>% 
+    filter(cabinet_party_last == 1)
 
-problems <- function(x) {
-    pg.c <- pg[pg$country_name==x,c("party_name_short", "party_name_english", "vote_share", "year")]
-    pg.c$index <- with(pg.c, interaction(party_name_short, year))
-    cd.c1 <- change.data[change.data$country==x,c("party", "votes", "year")]
-    cd.c1$cd <- 1
-    cd.c1$index <- with(cd.c1, interaction(party, year))
-    cd.c2 <- change3[change3$country==x,c("party", "votes", "year")]
-    cd.c2$index <- with(cd.c2, interaction(party, year))
-    cd.c.ex <- subset(cd.c1, !(index %in% cd.c2$index))
-    cd.c.ex$votes1 <- round(cd.c.ex$votes)
-    pg.c.ex <- subset(pg.c, !(index %in% cd.c2$index))
-    pg.c.ex$votes1 <- round(pg.c.ex$vote_share)
-    c.try <- merge(cd.c.ex[,-5], pg.c.ex[,-5], by.x=c("votes1", "year"), by.y=c("votes1", "year"))
-    
-    View(c.try)
-    View(cd.c.ex[cd.c.ex$votes!=0 & cd.c.ex$year>1950,])
-    View(pg.c.ex[pg.c.ex$votes!=0 & pg.c.ex$year>1950,])
-    View(pg.c)
-    
-    names(table(change.data$party[change.data$country==x]))[!names(table(change.data$party[change.data$country==x])) %in% names(table(change3$party[change3$country==x]))]
-}
 
-problems <- function(c) {
-    pg %>% filter(country == c) %>% select(party_name_short) %>% distinct()
-    change_data %>% filter(country == c) %>% select(party) %>% distinct()
-    anti_join(x1, x2, by = c("party_name_short" = "party"))
-}
+pg %>% filter(country == c) %>% arrange(party_name_short) %>% pull(party_name_short) %>% unique()
+change_data %>% filter(country == c) %>% pull(party) %>% unique()
 
 # Austria done
 
@@ -663,13 +640,11 @@ pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="MpA"] <- "M
 pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="SL"] <- "SEL"
 pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="UC"] <- "UDC"
 
+## Only parties that have ever been part of government from here on down
 # Latvia done
 pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="LRa"] <- "LRA"
+pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="NA/TB/LNNK"] <- "NA"
 
-pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="KDT"] <- "DT"
-pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="KPSS"] <- "LKP"
-pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="LSA"] <- "LSDA"
-pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="LZS/KDS"] <- "KDS"
 
 
 # Lithuania done

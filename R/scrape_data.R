@@ -179,6 +179,13 @@ change_data <- map_df(countries, function(country) {
             mutate(bridge_name = if_else(party == "KS-EDEK (EDEK)", "KS-EDEK", bridge_name))
     }
     
+    # Fix continuity problems for Norway
+    if (country == "norway") {
+        last_two <- last_two %>%
+            mutate(party = if_else(party == "AP", "AP (DNA)", party),
+                   bridge_name = if_else(party == "AP (DNA)", "DNA", bridge_name))
+    }
+    
     # Fix continuity problems for Romania
     if (country == "romania") {
         last_two <- last_two %>%
@@ -389,6 +396,11 @@ change_data <- map_df(countries, function(country) {
         c_data0 <- c_data0 %>% 
             mutate(party = str_replace(party, "FG \\(PCF\\)", "PCF"),
                    party1 = str_replace(party1, "FG", "PCF"))
+    }
+    
+    if (country == "norway") {
+        c_data0 <- c_data0 %>% 
+            filter(!party == "H,")
     }
     
     bridge <- c_data0 %>% 
@@ -659,11 +671,8 @@ pg$year[pg$country_name=="Luxembourg" & pg$year==1968] <- 1969
 # Netherlands done
 
 # Norway done
-pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Kp"] <- "NKP" 
-pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Sp"] <- "SP" 
 pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="KrF"] <- "KRF" 
-pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Fr"] <- "FRP" 
-pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Kp"] <- "NKP" 
+pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Sp"] <- "SP" 
 
 # Poland done
 pg$party_name_short[pg$country_name=="Poland" & pg$party_name_short=="UD"] <- "DU" 

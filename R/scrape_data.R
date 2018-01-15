@@ -167,8 +167,8 @@ change_data <- map_df(countries, function(country) {
                country = gsub(pattern="\\b([a-z])", replacement="\\U\\1", x=as.character(country), perl=TRUE) %>% 
                    str_replace("kingdom", " Kingdom"),
                change = as.numeric(str_detect(party, "\\(") & election == last_two_years[1]),
-               recent = 1) %>% 
-        select(country, party, election, year, vote_share, change, recent) %>% 
+               party = str_replace(party, "Ž", "Z")) %>% 
+        select(country, party, election, year, vote_share, change) %>% 
         mutate(bridge_name = if_else(str_detect(party, "\\("), 
                                      str_extract(party, "(?<=\\()(.*)(?=\\))"),
                                      party))
@@ -645,36 +645,18 @@ pg$party_name_short[pg$country_name=="Italy" & pg$party_name_short=="UC"] <- "UD
 pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="LRa"] <- "LRA"
 pg$party_name_short[pg$country_name=="Latvia" & pg$party_name_short=="NA/TB/LNNK"] <- "NA"
 
-
-
 # Lithuania done
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_english=="Lithuanian Liberty Union"] <- "LLL"
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="AWPL"] <- "LLRA"
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="SK"] <- "S"
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="L/L/L"] <- "LKDP"
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="BSDK"] <- "SDK"
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="VP/NDP"] <- "VNDS"
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="TT-LDP"] <- "TT" 
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="RPk"] <- "TT" 
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="JL"] <- "LTJS" 
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="JL/PKS"] <- "LTJS" 
-pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="LLRA"] <- "AWPL" 
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="LKDP"] <- "LKD"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_english=="LVLS"] <- "LZS"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="TS-LK"] <- "TS-LKD"
+pg$party_name_short[pg$country_name=="Lithuania" & pg$party_name_short=="TT-LDP"] <- "TT"
 
 # Luxembourg done
-pg$year[pg$country_name=="Luxembourg" & pg$year==1968] <- 1969 
-pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="Greng" & pg$year==1984] <- "GAP"
-pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="Greng"] <- "GRÉNG" 
-pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="DL"] <- "LÉNK" 
-pg$party_name_short[pg$country_name=="Luxembourg" & pg$party_name_short=="MPI"] <- "MIP" 
+pg$year[pg$country_name=="Luxembourg" & pg$year==1968] <- 1969
 
 # Malta done
-pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="MLP"] <- "PL" 
-pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="DA"] <- "AD" 
-pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="CWP"] <- "PHN" 
-pg$party_name_short[pg$country_name=="Malta" & pg$party_name_short=="DNP"] <- "PDN" 
 
 # Netherlands done
-pg$party_name_short[pg$country_name=="Netherlands" & pg$party_name_short=="Bp"] <- "BP" 
 
 # Norway done
 pg$party_name_short[pg$country_name=="Norway" & pg$party_name_short=="Kp"] <- "NKP" 

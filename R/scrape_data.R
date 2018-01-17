@@ -571,7 +571,7 @@ pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_elect
     select(-year, -election1) %>% 
     rename(year = year1)
 
-
+# Generate party abbreviations that match those in change_data
 # Austria done
 
 # Belgium done
@@ -722,26 +722,26 @@ pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lab"] <- "LAB
 pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lib"] <- "LIB" 
 
 change <- change_data %>%
-    inner_join(pg, by = c("country" = "country", "name1" = "party", "year"))
+    inner_join(pg %>%
+                   select(country, party, year, prime_minister_last, cabinet_party_last),
+               by = c("country", "name1" = "party", "year"))
 
 for (i in 2:max_names) {
-    temp <- merge(change_data, pg, 
-                  by.x = c("country", paste0("name",i), "year"), 
-                  by.y = c("country", "party", "year"),
-                  all = FALSE)
+    temp <- inner_join(change_data %>%
+                      mutate_at(vars(ends_with(paste(i))), funs(party_name = identity)),
+                  pg %>%
+                      select(country, party, year, prime_minister_last, cabinet_party_last), 
+                  by = c("country", "party_name" = "party", "year")) %>% 
+        select(-party_name)
     change <- bind_rows(change, temp)
 }
-
-change2 <- change_data %>% 
-    anti_join(change, by = c("country", "party", "year")) %>% 
-    bind_rows(change)
-
-######
-#Merge ParlGov data with Parties-and-Elections data
-change <- merge(change.data, pg, by.x=c("country","name1", "year"), by.y=c("country_name", "party_name_short", "year"))
-
-for(i in 2:6) {   
-    temp <- merge(change.data, pg, by.x=c("country",paste0("name",i), "year"), by.y=c("country_name", "party_name_short", "year"))
-    change <- rbind(change, temp)
-}
 rm(temp)
+
+change_data <- change_data %>% 
+    anti_join(change %>%
+                  select(country, party, year, prime_minister_last, cabinet_party_last),
+              by = c("country", "party", "year")) %>% 
+    bind_rows(change) %>% 
+    mutate(prime_minister_last = if_else(is.na(prime_minister_last), 0L, prime_minister_last),
+           cabinet_party_last = if_else(is.na(cabinet_party_last), 0L, cabinet_party_last))
+

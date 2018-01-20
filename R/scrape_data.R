@@ -21,12 +21,12 @@ first_row_to_names <- function(x) {
     return(x)
 }
 
-correct_for_alliances <- function(df) {
+correct_for_alliances <- function(df, cc) {
     correct_merged <- function(df, vote_variable) { 
         seat_variable <- paste0("X", str_extract(vote_variable, "\\d") %>% as.numeric() + 1)
         
         # fix for alliances indicated by lead cell (limited by country just to ensure it doesn't break others)
-        if (any(str_detect(df[[seat_variable]], "\\(")) & (country == "spain")) {
+        if (any(str_detect(df[[seat_variable]], "\\(")) & (cc == "spain")) {
             df <- df %>%
                 mutate(vv = df[[vote_variable]],
                        vv1 = df[[vote_variable]],
@@ -43,8 +43,8 @@ correct_for_alliances <- function(df) {
         }
         
         # correct for alliances indicated by merged cells (limited by country to avoid 'correcting' coincidental similar results)
-        if (country == "bulgaria" | country == "croatia" | country == "greece" |
-            country == "hungary" | country == "portugal" | country == "spain") {
+        if (cc == "bulgaria" | cc == "croatia" | cc == "greece" |
+            cc == "hungary" | cc == "portugal" | cc == "spain") {
             alliance_members <- tibble(members = rle(df[[vote_variable]])$length,
                                        vote_total = rle(df[[vote_variable]])$values)
             alliance_members2 <- alliance_members[rep(1:nrow(alliance_members),
@@ -152,7 +152,7 @@ change_data <- map_df(countries, function(country) {
                    str_replace("Ú", "U"),
                old = str_extract(X2, "(?<![\\S])[-+/A-Z]{2,}(?![^]])"),
                party = if_else(is.na(old), current, paste0(current, " (", old, ")"))) %>%
-        correct_for_alliances() %>% 
+        correct_for_alliances(cc = country) %>% 
         select(X4, X6, party)
     
     names(last_two0)[1:2] <- last_two_years
@@ -248,7 +248,7 @@ change_data <- map_df(countries, function(country) {
                                                              str_replace_all("[()*]", "") %>%
                                                              as.numeric()),
                                         0),
-                   party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2"),
+                   party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2") %>% str_trim(),
                    year = str_extract(election, "\\d{4}"))
         return(votes)
     })
@@ -258,6 +258,11 @@ change_data <- map_df(countries, function(country) {
         select(-party)
 
     # Fix continuity problems across two-page archives
+    if (country == "belgium") {
+        archive_votes <- archive_votes %>% 
+            mutate(party1 = str_replace(party1, "CVP/PSC", "CD&V") %>% 
+                       str_replace("PVV/PLP", "OPEN"))
+    }
     if (country == "denmark") {
         archive_votes <- archive_votes %>% 
             mutate(party1 = str_replace(party1, "KRF", "KD"))
@@ -290,13 +295,12 @@ change_data <- map_df(countries, function(country) {
         notes <- unlist(strsplit(notes, "\\)"))  
         # the following is only lightly edited from rebranding_scrape.R (i.e., ooold school, and I didn't check if all fixes are still needed)
         if (length(notes) > 1) { # as long as there is at least one rebranded party . . .
-            notes <- gsub(pattern="^; ", replacement="", x=notes)
+            notes <- str_replace(notes, pattern="^;\\s+", replacement="") %>%
+                str_replace_all("\\s+", " ")
             
-            changed_parties <- gsub(pattern="^(.*):[^;]* \\(.*", replacement="\\1", x=notes) # First, get the current acronym
-            changed_parties <- gsub(pattern=".*;\\W*(.*)", replacement="\\1", x=changed_parties)
-            changed_parties <- changed_parties[1:length(changed_parties)-1] # because of leftover tail of string after splitting	
-            changed_parties <- gsub(pattern=".*;\\W*(.*)", replacement="\\1", x=changed_parties)
-            changed_parties <- gsub(pattern="^\\W*(.*)", replacement="\\1", x=changed_parties)
+            changed_parties <- str_extract(notes, "([^;\\s]*)(?=:[^;]* \\(.*)") %>% 
+                na.omit() %>% 
+                as.vector()
             
             c_p <- gsub(pattern="^(.*):[^;]* (\\(.*)", replacement="\\1 \\2", x=notes)  # then get all old acronyms
             c_p <- c_p[1:length(c_p)-1] # because of leftover tail of string after splitting	
@@ -308,6 +312,7 @@ change_data <- map_df(countries, function(country) {
             if(country=="germany") c_p <- gsub(pattern=" Party for Unity,", replacement="", x=c_p) # kludge for Germany
             if(country=="norway") c_p <- gsub(pattern="\\( FMS\\)", replacement="(FMS, RV)", x=c_p) # kludge for Norway
             if(country=="sweden") c_p <- gsub(pattern="\\(KDS, KDS\\)", replacement="(KDS)", x=c_p) # kludge for Sweden
+            if(country=="croatia") c_p <- gsub(pattern="2007:\\(   HSS-HSLS\\) " , replacement="(HSS-HSLS)", x=c_p) # kludge for Croatia
             c_p <- gsub("((\\b\\w+), \\2,)", "\\2,", x=c_p) # to delete repeated acronyms when name changes but acronym is retained		
             c_p <- gsub(",\\)", ")", x=c_p)
             changed_parties <- paste(changed_parties, c_p, sep=" ") # put new and old acronyms together
@@ -367,9 +372,12 @@ change_data <- map_df(countries, function(country) {
     })
     
     if (country == "belgium") {
-        archive_changes <- archive_changes %>% 
-            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)") %>% 
-                       str_replace("^VU.*", "VU (CVV, VU-ID21)"))
+        archive_changes <- archive_changes %>%
+            mutate(party = str_replace(party, "FDF \\(FDF-RW\\)", "FDF (FDF-RW, FDF-PLDP)") %>%
+                       str_replace("^VU.*", "VU (CVV, VU-ID21)") %>%
+                       str_replace("PVV/PLP \\(LP/PL\\)", "OPEN VLD (LP/PL, PVV/PLP, PVV, VLD)") %>%
+                       str_replace("OPEN VLD \\(PVV, VLD\\)", "OPEN VLD (LP/PL, PVV/PLP, PVV, VLD)") %>% 
+                       str_replace("CD&V \\(CVP, CD&V-N-VA\\)", "CD&V (CVP/PSC, CVP, CD&V-N-VA)"))
     }
     if (country == "greece") {
         archive_changes <- archive_changes %>% 
@@ -399,7 +407,6 @@ change_data <- map_df(countries, function(country) {
             mutate(party = str_replace(party, "FG \\(PCF\\)", "PCF"),
                    party1 = str_replace(party1, "FG", "PCF"))
     }
-    
     if (country == "norway") {
         c_data0 <- c_data0 %>% 
             filter(!party == "H,")
@@ -474,7 +481,7 @@ change_data0 <- change_data
 
 max_names <- change_data0 %>% 
     pull(party) %>% 
-    strsplit("( \\()|,|\\)") %>% 
+    strsplit("( \\()|, |\\)") %>% 
     map_int(~ length(.x)) %>% 
     max()
 
@@ -497,14 +504,14 @@ change_data <- change_data0 %>%
     arrange(country, party, year) %>% 
     select(-matches("name\\d")) %>% 
     # create variables capturing every acronym the party has ever had separately
-    separate(party, into = paste0("name", 1:(max_names+1)), sep = "( \\()|,|\\)", remove = FALSE, fill = "right") %>% 
+    separate(party, into = paste0("name", 1:(max_names+1)), sep = "( \\()|, |\\)", remove = FALSE, fill = "right") %>% 
     mutate_at(vars(matches("name\\d+")), funs(if_else(. == "", NA_character_, .))) %>% 
     select(-matches(paste0("name", max_names+1))) %>% 
     group_by(country, party, year) %>% 
     mutate(election1 = seq(n()),
            year1 = year + (election1 - 1)/10) %>% 
     ungroup() %>% 
-    select(-year) %>% 
+    select(-year, -election1) %>% 
     rename(year = year1)
 
 # save
@@ -521,22 +528,7 @@ es <- read_csv("data/es_data-v3/es_data-v3.csv") %>%
     mutate(country = str_replace(country, "West Germany", "Germany") %>% 
                countrycode::countrycode("country.name", "country.name"))
 
-# ParlGov
-#Get ParlGov data
-enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_election_parameter.csv",
-                 col_types = "iddddddT") %>% 
-    transmute(election_id = election_id,
-              enep = enp_votes) %>% 
-    left_join(read_csv("http://www.parlgov.org/static/data/development-cp1252/view_election.csv",
-                       col_types = "cccDdiicccdiiiii") %>%
-                  select(election_id, country_name, election_date) %>% 
-                  distinct(),
-              by = "election_id") %>% 
-    mutate(country = countrycode::countrycode(country_name, "country.name", "country.name"),
-           year = lubridate::year(election_date)) %>% 
-    filter(country %in% (countries %>% countrycode::countrycode("country.name", "country.name"))) %>% 
-    mutate(country = if_else(str_detect(country, "Kingdom"), "United Kingdom", country))
-
+# get ParlGov data on incumbent status
 last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv") %>% 
     arrange(country_name, election_date, start_date) %>% 
     group_by(country_name, election_id) %>% 
@@ -569,9 +561,35 @@ pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_elect
            year1 = year + (election1 - 1)/10) %>% 
     ungroup() %>% 
     select(-year, -election1) %>% 
-    rename(year = year1)
+    rename(year = year1) %>% 
+    filter(year >= 1945)
 
 # Generate party abbreviations that match those in change_data
+test_matches <- function(cc) {
+    pg_parties <- pg %>% filter(country==cc) %>% pull(party) %>% unique() %>% sort()
+    
+    cd_data <- change_data %>% filter(country==cc) 
+    
+    max_names <- cd_data %>% 
+        pull(party) %>% 
+        strsplit("( \\()|, |\\)") %>% 
+        map_int(~ length(.x)) %>% 
+        max()
+    
+    cd_parties <- cd_data %>% pull(name1) %>% unique()
+    
+    for (i in 2:max_names) {
+        temp <- cd_data %>%
+            mutate_at(vars(ends_with(paste(i))), funs(party_name = identity)) %>% 
+            pull(party_name) %>%
+            unique()
+        cd_parties <- c(cd_parties, temp)
+    }
+
+    print(paste("unmatched_pg for", cc, ":", paste(setdiff(pg_parties, cd_parties), collapse = "; ")))
+    print(paste("unmatched_cd for", cc, ":", paste(setdiff(cd_parties, pg_parties), collapse = "; ")))
+}
+
 # Austria done
 
 # Belgium done
@@ -582,6 +600,11 @@ pg$party[pg$country_name=="Belgium" & pg$party_name_short=="AGL-Gr"] <- "GROEN"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="KPB-PCB"] <- "KPB/PCB"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="LD|LDD"] <- "LDD"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="Pp"] <- "PP"
+pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PVV|VLD"] <- "PVV"
+pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PSC-CDH"] <- "CDH"
+pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PSC-CVP"] <- "CVP/PSC"
+pg$party[pg$country_name=="Belgium" & pg$party_name_short=="LP-PL"] <- "LP/PL"
+pg$party[pg$country_name=="Belgium" & pg$party_name_short=="SPa+Spi"] <- "SP.A"
 
 # Bulgaria Parlgov data starts in 1991; done
 pg$party[pg$country_name=="Bulgaria" & pg$party_name_short=="Ataka"] <- "ATAKA"
@@ -606,6 +629,9 @@ pg$party[pg$country_name=="Czech Republic" & pg$party_name_short=="KSCM" & pg$ye
 
 # Denmark done
 pg$party[pg$country_name=="Denmark" & pg$party_name_short=="En-O"] <- "EL"
+pg$party[pg$country_name=="Denmark" & pg$party_name_short=="KrF"] <- "KRF"
+pg$party[pg$country_name=="Denmark" & pg$party_name_short=="RF"] <- "KRF"
+pg$party[pg$country_name=="Denmark" & pg$party_name_short=="Sd"] <- "SD"
 
 # Estonia done
 pg$party[pg$country_name=="Estonia" & pg$party_name_short=="ERP"] <- "RP"
@@ -701,8 +727,8 @@ pg$party[pg$country_name=="Slovakia" & pg$party_name_short=="Smer"] <- "SMER"
 # Slovenia
 pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="DeSUS"] <- "DESUS" 
 pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="Zares"] <- "ZARES"
-pg$party[pg$country_name=="Slovenia" & pg$party_name=="LZJ-PS"] <- "PS"
-pg$party[pg$country_name=="Slovenia" & pg$party_name=="ZL-SD"] <- "ZLSD"
+pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="LZJ-PS"] <- "PS"
+pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="ZL-SD"] <- "ZLSD"
 
 # Spain done
 pg$party[pg$country_name=="Spain" & pg$party_name_short=="AP-P"] <- "PP" 
@@ -723,21 +749,21 @@ pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lib"] <- "LIB
 
 change <- change_data %>%
     inner_join(pg %>%
-                   select(country, party, year, prime_minister_last, cabinet_party_last),
+                   select(country, party, year, prime_minister_last, cabinet_party_last, election_id),
                by = c("country", "name1" = "party", "year"))
 
 for (i in 2:max_names) {
     temp <- inner_join(change_data %>%
                       mutate_at(vars(ends_with(paste(i))), funs(party_name = identity)),
                   pg %>%
-                      select(country, party, year, prime_minister_last, cabinet_party_last), 
+                      select(country, party, year, prime_minister_last, cabinet_party_last, election_id), 
                   by = c("country", "party_name" = "party", "year")) %>% 
         select(-party_name)
     change <- bind_rows(change, temp)
 }
 rm(temp)
 
-change_data <- change_data %>% 
+change2 <- change_data %>% 
     anti_join(change %>%
                   select(country, party, year, prime_minister_last, cabinet_party_last),
               by = c("country", "party", "year")) %>% 
@@ -745,3 +771,38 @@ change_data <- change_data %>%
     mutate(prime_minister_last = if_else(is.na(prime_minister_last), 0L, prime_minister_last),
            cabinet_party_last = if_else(is.na(cabinet_party_last), 0L, cabinet_party_last))
 
+# get ParlGov data on effective number of electoral parties
+enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_election_parameter.csv",
+                 col_types = "iddddddT") %>% 
+    transmute(election_id = election_id,
+              enep = enp_votes) %>% 
+    left_join(read_csv("http://www.parlgov.org/static/data/development-cp1252/view_election.csv",
+                       col_types = "cccDdiicccdiiiii") %>%
+                  select(election_id, country_name, election_date, election_type) %>% 
+                  distinct(),
+              by = "election_id") %>% 
+    mutate(country = countrycode::countrycode(country_name, "country.name", "country.name"),
+           year = lubridate::year(election_date)) %>% 
+    filter(country %in% (countries %>% countrycode::countrycode("country.name", "country.name")) &
+               election_type == "parliament") %>% 
+    mutate(country = if_else(str_detect(country, "Kingdom"), "United Kingdom", country)) %>% 
+    group_by(country, year) %>%
+    arrange(election_date) %>% 
+    mutate(election1 = seq(n()),
+           year1 = year + (election1 - 1)/10) %>% 
+    ungroup() %>% 
+    select(-year, -election1, -election_type) %>% 
+    rename(year = year1)
+
+enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_election_parameter.csv",
+                 col_types = "iddddddT") %>% 
+    transmute(election_id = election_id,
+              enep = enp_votes)
+
+change3 <- change2 %>%
+    group_by(country, year) %>% 
+    mutate(election_id = mean(election_id, na.rm = TRUE),
+           test = max(prime_minister_last)) %>% 
+    ungroup() %>% 
+    left_join(enep, by = "election_id") %>% 
+    arrange(country, year, party)                   #rearrange this

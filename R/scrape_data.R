@@ -312,7 +312,7 @@ change_data <- map_df(countries, function(country) {
             if(country=="germany") c_p <- gsub(pattern=" Party for Unity,", replacement="", x=c_p) # kludge for Germany
             if(country=="norway") c_p <- gsub(pattern="\\( FMS\\)", replacement="(FMS, RV)", x=c_p) # kludge for Norway
             if(country=="sweden") c_p <- gsub(pattern="\\(KDS, KDS\\)", replacement="(KDS)", x=c_p) # kludge for Sweden
-            if(country=="croatia") c_p <- gsub(pattern="2007:\\(   HSS-HSLS\\) " , replacement="(HSS-HSLS)", x=c_p) # kludge for Croatia
+            if(country=="croatia") c_p <- gsub(pattern="2007:\\(HSS-HSLS\\) " , replacement="(HSS-HSLS)", x=c_p) # kludge for Croatia
             c_p <- gsub("((\\b\\w+), \\2,)", "\\2,", x=c_p) # to delete repeated acronyms when name changes but acronym is retained		
             c_p <- gsub(",\\)", ")", x=c_p)
             changed_parties <- paste(changed_parties, c_p, sep=" ") # put new and old acronyms together
@@ -565,7 +565,7 @@ pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_elect
     filter(year >= 1945)
 
 # Generate party abbreviations that match those in change_data
-test_matches <- function(cc) {
+check_matches <- function(cc) {
     pg_parties <- pg %>% filter(country==cc) %>% pull(party) %>% unique() %>% sort()
     
     cd_data <- change_data %>% filter(country==cc) 

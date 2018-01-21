@@ -281,7 +281,8 @@ change_data <- map_df(countries, function(country) {
     election_years <- archive_votes %>% 
         pull(year) %>%
         c(last_two_years) %>% 
-        unique()
+        unique() %>% 
+        sort()
     
     archive_changes <- map_df(archive_links, function(a_link) {    
         notes <- read_html(a_link) %>% 
@@ -292,6 +293,12 @@ change_data <- map_df(countries, function(country) {
             gsub(x = ., "\\r\\n", "")
         if (country=="denmark") notes <- gsub(pattern="\\((since [0-9]{4})\\)", replacement="\\1", x=notes)
         if (country=="ireland") notes <- gsub(pattern="\\(Family[^)]*\\)", replacement="", x=notes)
+        if (country=="lithuania") notes <- gsub(pattern="LVLS[^)]*\\)", 
+                                                replacement="LVZS: Lithuanian Peasant and Greens Union (2004: Union of Peasants and New Democracy    Parties, VNDS; 2008: Lithuanian Peasant Popular Union, LVLS)",
+                                                x = notes)
+        if (country=="lithuania") notes <- gsub(pattern="\\(SAJUDIS\\)", 
+                                                replacement=", SAJUDIS",
+                                                x = notes)
         notes <- unlist(strsplit(notes, "\\)"))  
         # the following is only lightly edited from rebranding_scrape.R (i.e., ooold school, and I didn't check if all fixes are still needed)
         if (length(notes) > 1) { # as long as there is at least one rebranded party . . .
@@ -321,6 +328,7 @@ change_data <- map_df(countries, function(country) {
             changed_parties <- gsub(pattern="(^(.*\\b) \\(.*)((?<!\\-)\\b\\2\\b(?!(\\-|\\+)))(.*)",
                                     replacement="\\1\\5", x=changed_parties, perl=TRUE) 
             changed_parties <- gsub(pattern="\\(, ", replacement="(", x=changed_parties)
+            changed_parties <- gsub(pattern="\\( ", replacement="(", x=changed_parties)
             changed_parties <- gsub(pattern=" \\($", replacement="", x=changed_parties)
             changed_parties <- gsub(pattern=", ,", replacement=",", x=changed_parties)
             changed_parties <- gsub(pattern=", \\)", replacement=")", x=changed_parties)
@@ -342,7 +350,7 @@ change_data <- map_df(countries, function(country) {
             if(country=="poland") changed_parties[which(changed_parties=="UP (SP, SDPL-SDPL, et al.)")] <- "UP (SP, SDPL)" # kludge for Poland 
             if(country=="romania") changed_parties[which(changed_parties=="CDR 2000:(CDR 2000)")] <- "CDR" # kludge for Romania 
             if(country=="slovakia") changed_parties[which(changed_parties=="LS-HZDS (HZDS, HZDS-RSS)")] <- "LS-HZDS (HZDS-RSS, HZDS)" # bug fix for Slovakia 
-            if(country=="italy") changed_parties[which(changed_parties=="1968: Unified Socialist Party, PSU (PSIUP, PSU)")] <- "PSI (PSIUP, PSU)" # kludge for Italy 
+            if(country=="italy") changed_parties[which(changed_parties=="1968: Unified Socialist Party, PSU (PSIUP, PSU)")] <- "PSI (PSIUP, PSU)" # kludge for Italy
             if(country=="spain") changed_parties[which(changed_parties=="CiU (PDPC + Centre Union)")] <- "CiU (PDPC, UDC)" # kludge for Spain 
             if(country=="switzerland") changed_parties[which(changed_parties=="PS (AP)")] <- "FPS (AP)" # kludge for Switzerland 
             if(country=="estonia") changed_parties[which(changed_parties=="EPPL (EPL)")] <- "EPPL" # kludge for Estonia 
@@ -702,6 +710,7 @@ pg$party[pg$country_name=="Ireland" & pg$party_name_short=="DS"] <- "SD"
 # Italy done
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="BN"] <- "BNL"
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="DL-M"] <- "DL"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="ID"] <- "DL"
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="PpP"] <- "PRODI"
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="FI-PdL"] <- "FI"
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="IdV"] <- "IDV"
@@ -715,8 +724,8 @@ pg$party[pg$country_name=="Latvia" & pg$party_name_short=="LRa"] <- "LRA"
 pg$party[pg$country_name=="Latvia" & pg$party_name_short=="NA/TB/LNNK"] <- "NA"
 
 # Lithuania done
+pg$party[pg$country_name=="Lithuania" & pg$party_name_short=="LiCS-TPP"] <- "LiCS"
 pg$party[pg$country_name=="Lithuania" & pg$party_name_short=="LKDP"] <- "LKD"
-pg$party[pg$country_name=="Lithuania" & pg$party_name_english=="LVLS"] <- "LZS"
 pg$party[pg$country_name=="Lithuania" & pg$party_name_short=="TS-LK"] <- "TS-LKD"
 pg$party[pg$country_name=="Lithuania" & pg$party_name_short=="TT-LDP"] <- "TT"
 

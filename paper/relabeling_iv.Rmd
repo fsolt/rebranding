@@ -3,9 +3,9 @@ title: "Consequences of Party Re-labeling"
 author: "Mi-son Kim and Frederick Solt"
 date: "11/22/2017"
 output:
+  html_document: default
   pdf_document: 
     keep_tex: true
-  html_document: default
 bibliography: /Users/fredsolt/Library/texmf/bibtex/bib/FSLibrary.bib
 biblio-style: american-political-science-association2
 ---
@@ -141,7 +141,7 @@ change_data1 <- change_data %>%
            prev_vote_rel_perc = prev_vote_rel/r_avg_vote,
            prev_vote_rel_perc = if_else(r_avg_vote==0 & !is.na(prev_vote_rel), 0, prev_vote_rel_perc), # Set equal to 0 if new party
            elec_shock = -prev_vote_rel_perc,
-           vote_diff = abs(vote_share - prev_vote),
+           vote_diff = if_else(!is.na(prev_vote), abs(vote_share - prev_vote), vote_share),
            dem_age = year - first_cy,
            party_age = year - first_pcy, # years since first contested (postwar) election
            count = lag(cumsum(change)),
@@ -149,20 +149,19 @@ change_data1 <- change_data %>%
     group_by(country, party, count) %>% 
     mutate(name_exp = as.numeric(as.factor(year)) - 1, # brand exposure: number of previous elections name was used
            name_age = round(year) - round(min(year))) %>% 
-    group_by(country, year)
+    group_by(country) %>% 
+    mutate(enep_lag = lag(enep1)) %>% 
+    ungroup()
 
 # Pedersen index of volatility
 pedersen <- change_data1 %>% 
     group_by(country, year) %>% 
     summarize(pedersen = sum(vote_diff)/2) %>% 
-    group_by(country) %>% 
-    mutate(year_lag = lag(year)) %>% 
     ungroup()
 
 change_data2 <- change_data1 %>% 
-    left_join(pedersen %>% select(-year), 
-              by = c("country" = "country", "year" = "year_lag")) %>% 
-    rename(pedersen_lag = pedersen, votes = vote_share) %>% 
+    left_join(pedersen, by = c("country", "year")) %>% 
+    rename(votes = vote_share) %>% 
     group_by(country, party) %>%
     arrange(country, party, year) %>% 
     mutate(cparty = paste(country, party) %>% str_replace_all(" ", "_") %>% tolower(),
@@ -170,23 +169,222 @@ change_data2 <- change_data1 %>%
            votes_gain_rel = votes/lag(votes),
            log_party_age = log1p(party_age)) %>% 
     ungroup() %>% 
-    select(country, year, party, cparty, election,
+    select(country, year, party, cparty,
            change, log_party_age, r_avg_vote, cabinet_party_last, 
            enep_lag, 
-           name_exp, elec_shock, pedersen_lag, 
+           name_exp, elec_shock, pedersen, 
            votes, votes_gain_abs, votes_gain_rel) %>% 
     filter(complete.cases(.) & votes_gain_rel!=Inf) 
-
-
-
-
-
 ```
 
 
-```{r}
+```{r replication, include=FALSE}
+library(lme4)
+
+base_model <- "log_party_age + 
+                r_avg_vote + 
+                cabinet_party_last + 
+                enep_lag"
+
+# base model
+t1m0 <- glmer(as.formula(paste("change ~", base_model, " +
+                (1|cparty) + (1|year) + (1|country)")),
+             data = change_data2, family = "binomial", nAGQ = 0)
+
+# brands
+t1m1 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp +
+                (1|cparty) + (1|year) + (1|country)")),
+             data = change_data2, family = "binomial", nAGQ = 0)
+
+# shocks
+t1m2 <- glmer(as.formula(paste("change ~", base_model, "+ elec_shock +
+                (1|cparty) + (1|year) + (1|country)")),
+             data = change_data2, family = "binomial", nAGQ = 0)
+
+# volatility 
+t1m3 <- glmer(as.formula(paste("change ~", base_model, "+ pedersen +
+                (1|cparty) + (1|year) + (1|country)")),
+             data = change_data2, family = "binomial", nAGQ = 0)
+
+# all three 
+t1m4 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp + elec_shock + pedersen +
+                (1|cparty) + (1|year) + (1|country)")),
+             data = change_data2, family = "binomial", nAGQ = 0)
+```
+
+```{r replication_table, echo=FALSE}
+library(texreg)
+
+format_for_texreg <- function(model = NULL) {
+    model.res <- extract(model, include.aic=F, include.bic=F, include.deviance=F, naive=T)
+    model.res@gof <- model.res@gof[-9]
+    model.res@gof.names <- model.res@gof.names[-9]
+    model.res@gof.decimal <- model.res@gof.decimal[-9]
+    return(model.res)
+}
+
+models.t1 <- list()
+for (i in 1:4) {
+    models.t1[i] <- format_for_texreg(get(paste0("t1m", i)))
+}
+
+vars <- c("Party Age, Logged", "Party Size", "Incumbent Government", "Electoral Pluralism",  "Brand Exposure", "Electoral Shock", "Party System Weakness")
+ 
+
+# Three Theories
+texreg(l=models.t1, label="T:models.t1", 
+       caption="Predicting Party Relabeling, Cross-Classified Hierarchical Models",
+       stars = c(0.001, 0.01, 0.05, 0.1), symbol="\\dagger",
+       caption.above=T, 
+       custom.coef.names=c("Intercept", vars),  
+       custom.gof.names = c(NA, "Party-Elections", "Parties", "Elections", "Countries", "Variance: Parties", "Variance: Elections", "Variance: Countries"),
+       reorder.coef = c(6:8, 2:5, 1)
+)
+```
 
 
+```{r replication_plot, echo=FALSE} 
+sims.glmer <- function(mod = NULL, n = 10000, seed = 324) {
+    # H/T http://www.quantumforest.com/2011/10/simulating-data-following-a-given-covariance-structure/
+    varcov <- matrix(vcov(mod)@x, nrow = vcov(mod)@Dim[1])
+    betas <- fixef(mod)
+    se <- diag(chol(diag(diag(varcov), length(diag(varcov)))))
+    
+    L <- chol(varcov)
+    n.vars <- dim(L)[1]
+    
+    set.seed(seed)
+    sims <- t(t(L) %*% matrix(rnorm(n.vars*n), nrow=n.vars, ncol=n))
+    
+    for (v in 1:ncol(sims)) {
+        sims[,v] <- sims[,v] + as.numeric(betas[v])
+    }
+    
+    sims <- as.data.frame(sims)
+    names(sims) <- names(betas)
+    names(sims)[1] <- "constant"
+    return(sims)
+}
+
+# glmer.logit.fd, which calculates first differences when all other variables are at their means, is used only for comparison to glmer.logit.fd2, which uses the sample mean of the DV as the baseline instead to compensate for the underprediction that occurs when the DV is relatively rare
+
+glmer.logit.fd <- function(mod = NULL, sdX2 = FALSE, use.mode = FALSE, ci = .95) {
+    mod.sims <- sims.glmer(get(mod))
+    mod <- get(mod)
+    
+    df <- cbind( constant = 1, mod@frame[, 2:(length(mod@frame) - length(mod@cnms))])
+    vars.mean <- data.frame(t(colMeans(df)))
+    vars <- names(df)
+    if (use.mode == TRUE) {
+        for(i in seq(length(vars))) {
+            tab <- table(df[, vars[i]])
+            if (length(tab) == 2) {
+                vars.mean[i] <- as.numeric(names(tab[which(tab == max(tab))]))
+            }
+        }
+    }
+    fd <- data.frame(mean = t(vars.mean), min = NA, max = NA, fd = NA, fd.lb = NA, fd.ub = NA)
+    for(i in seq(length(vars))) {
+        fake.data <- data.frame(vars.mean[, !names(vars.mean) %in% vars[i]], 
+                                x = c(min(df[vars[i]]), max(df[vars[i]])))
+        fd[i, "min"] <- min(df[vars[i]])
+        fd[i, "max"] <- max(df[vars[i]])            
+        if (sdX2 == TRUE & length(table(df[, vars[i]])) > 2) {
+            fake.data$x <- c(mean(df[, vars[i]]) - sd(df[, vars[i]]), 
+                             mean(df[, vars[i]]) + sd(df[, vars[i]]))
+            fd[i, "min"] <- mean(df[, vars[i]]) - sd(df[, vars[i]])
+            fd[i, "max"] <- mean(df[, vars[i]]) + sd(df[, vars[i]])  
+        }
+        names(fake.data)[length(names(fake.data))] <- vars[i]
+        sims.t <- mod.sims[c(vars[!vars %in% vars[i]], vars[i])]
+        t <- plogis(data.matrix(fake.data) %*% t(data.matrix(sims.t)))
+        diff <- t[2,] - t[1,]
+        
+        fd[i, 4] <- mean(diff)*100
+        fd[i, 5:6] <- quantile(diff, probs = c(0.025, 0.975))*100
+    }
+    return(fd)
+}
+
+glmer.logit.fd2 <- function(model = NULL, sdX2 = FALSE, use.mode = FALSE, ci = .95) {
+    mod.sims <- sims.glmer(get(model))
+    mod <- get(model)
+    
+    df <- cbind( constant = 1, mod@frame[, 2:(length(mod@frame) - length(mod@cnms))])
+    vars.mean <- data.frame(t(colMeans(df)))
+    vars <- names(df)
+    if (use.mode == TRUE) {
+        for(i in seq(length(vars))) {
+            tab <- table(df[, vars[i]])
+            if (length(tab) == 2) {
+                vars.mean[i] <- as.numeric(names(tab[which(tab == max(tab))]))
+            }
+        }
+    }
+    fd <- data.frame(mean = t(vars.mean), min = NA, max = NA, fd = NA, fd.lb = NA, fd.ub = NA)
+    for(i in seq(length(vars))) {
+        fake.data <- data.frame(x = c(min(df[vars[i]]), max(df[vars[i]])))
+        fd[i, "min"] <- min(df[vars[i]])
+        fd[i, "max"] <- max(df[vars[i]])            
+        if (sdX2 == TRUE & length(table(df[, vars[i]])) > 2) {
+            fake.data$x <- c(mean(df[, vars[i]]) - sd(df[, vars[i]]), 
+                             mean(df[, vars[i]]) + sd(df[, vars[i]]))
+            fd[i, "min"] <- mean(df[, vars[i]]) - sd(df[, vars[i]])
+            fd[i, "max"] <- mean(df[, vars[i]]) + sd(df[, vars[i]])  
+        }
+        names(fake.data) <- vars[i]
+        sims.t <- mod.sims[vars[i]]
+        pp <- t(qlogis(mean(mod@frame$change)) - fd[i, "mean"]*data.matrix(sims.t)) 
+        pp <- rbind(pp, pp)
+        pp <- plogis(pp + data.matrix(fake.data) %*% t(data.matrix(sims.t)))
+        diff <- pp[2,] - pp[1,]
+        
+        fd[i, 4] <- mean(diff)*100
+        fd[i, 5:6] <- quantile(diff, probs = c(0.025, 0.975))*100
+    }
+    return(fd)
+}
+
+t1m4.fd.range <- glmer.logit.fd2("t1m4")
+t1m4.fd.sdX2 <- glmer.logit.fd2("t1m4", sdX2 = T)
+
+fd.cust <- function(model = NULL, iv = NULL, range = c(0, 1), digits=0) {
+    mod.sims <- sims.glmer(get(model))
+    mod <- get(model)
+    sims.t <- mod.sims[iv]
+    fake.data <- data.frame(iv = range)
+    pp <- t(qlogis(mean(mod@frame$change)) - mean(mod@frame[[iv]])*data.matrix(sims.t)) 
+    pp <- rbind(pp, pp)
+    pp <- plogis(pp + data.matrix(fake.data) %*% t(data.matrix(sims.t)))
+    diff <- pp[2,] - pp[1,]
+    fd <- mean(diff)*100
+    fd <- c(fd, quantile(diff, probs = c(0.025, 0.975))*100)
+    out <- paste(round(fd[1], digits), "percentage points (95\\% C.I.,", round(fd[2], digits), "to", round(fd[3], digits),"points)")
+    out
+}
+
+t1m4.fd <- rbind(data.frame(iv = row.names(t1m4.fd.sdX2)[c(6:8, 2:5)], 
+                          t1m4.fd.sdX2[c(6:8, 2:5), 4:6], 
+                          range = "Over 2 Standard Deviations",
+                          no = 1:length(row.names(t1m4.fd.sdX2)[-1])),
+               data.frame(iv = row.names(t1m4.fd.range)[c(6:8, 2:5)], 
+                          t1m4.fd.range[c(6:8, 2:5), 4:6], 
+                          range = "Over Full Range",
+                          no = 1:length(row.names(t1m4.fd.range)[-1])) 
+               )
+
+n.vars <- length(row.names(t1m4.fd.sdX2)[-1])
+
+fd.plot <- ggplot(data = t1m4.fd, aes(y = no, x = fd)) +
+    geom_point() + geom_errorbarh(aes(xmin = fd.lb, xmax = fd.ub, height=0)) +
+    ylab("") + xlab("") + theme_bw() + 
+    scale_y_reverse(breaks = 1:n.vars, labels = vars[c(5:7, 1:4)]) +
+    theme(legend.title=element_blank(), legend.position=c(.15, .95)) +
+    geom_vline(xintercept=c(0), linetype="dotted") + 
+    facet_grid(. ~ range, scales="free") +
+    scale_x_continuous(breaks = seq(-60, 50, by = 10))
+
+fd.plot
 ```
 
 

@@ -778,6 +778,7 @@ pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Con"] <- "CON
 pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lab"] <- "LAB" 
 pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lib"] <- "LIB" 
 
+# Merge ParlGov data on incumbent governments with change_data using all past names of each party
 change <- change_data %>%
     inner_join(pg %>%
                    select(country, party, year, prime_minister_last, cabinet_party_last, election_id),
@@ -794,6 +795,7 @@ for (i in 2:max_names) {
 }
 rm(temp)
 
+# Re-add parties that were not part of incumbent governments 
 change2 <- change_data %>% 
     anti_join(change %>%
                   select(country, party, year, prime_minister_last, cabinet_party_last),
@@ -825,15 +827,10 @@ enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_
     select(-year, -election1, -election_type) %>% 
     rename(year = year1)
 
-enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_election_parameter.csv",
-                 col_types = "iddddddT") %>% 
-    transmute(election_id = election_id,
-              enep = enp_votes)
-
 change3 <- change2 %>%
     group_by(country, year) %>% 
     mutate(election_id = mean(election_id, na.rm = TRUE),
            test = max(prime_minister_last)) %>% 
     ungroup() %>% 
-    left_join(enep, by = "election_id") %>% 
+    left_join(enep, by = c("country", "year")) %>% 
     arrange(country, year, party)                   #rearrange this

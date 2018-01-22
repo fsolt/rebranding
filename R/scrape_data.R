@@ -126,7 +126,7 @@ correct_for_alliances <- function(df, cc) {
     return(df)
 }
 
-change_data <- map_df(countries, function(country) {
+change_data0 <- map_df(countries, function(country) {
     cat("Processing", country, "\n")
     
     country_page <- paste0("http://www.parties-and-elections.eu/", country, ".html") %>% 
@@ -485,15 +485,13 @@ change_data <- map_df(countries, function(country) {
     return(c_data)
 }) 
 
-change_data0 <- change_data
-
 max_names <- change_data0 %>% 
     pull(party) %>% 
     strsplit("( \\()|, |\\)") %>% 
     map_int(~ length(.x)) %>% 
     max()
 
-change_data <- change_data0 %>% 
+change_data0 <- change_data0 %>% 
     mutate(country = countrycode::countrycode(country, "country.name", "country.name") %>% 
                if_else(str_detect(., "Kingdom"), "United Kingdom", .),
            party = str_replace(party, "Ö", "O") %>% 
@@ -522,22 +520,11 @@ change_data <- change_data0 %>%
     select(-year, -election1) %>% 
     rename(year = year1)
 
-# save
-write_csv(change_data, "data/change_data.csv")
-save(change_data, file="data/change_data.rda")
 
-
-# Bormann and Golder Democratic Electoral System Data
-des_link <- "http://mattgolder.com/files/research/es_data-v3.zip"
-download.file(des_link, "data/es_data-v3.zip")
-unzip("data/es_data-v3.zip", exdir = "data/es_data-v3") 
-
-es <- read_csv("data/es_data-v3/es_data-v3.csv") %>% 
-    mutate(country = str_replace(country, "West Germany", "Germany") %>% 
-               countrycode::countrycode("country.name", "country.name"))
 
 # get ParlGov data on incumbent status
-last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv") %>% 
+last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv",
+                         col_types = "ccDDciiiiicccdiiiii") %>% 
     arrange(country_name, election_date, start_date) %>% 
     group_by(country_name, election_id) %>% 
     filter(start_date == max(start_date)) %>% 
@@ -550,6 +537,26 @@ last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/
     ungroup() %>% 
     select(-election_id)
 
+# Most recent elections in Parties and Elections not yet included in ParlGov, 
+# so they don't have a previous_cabinet_id although that cabinet is already in ParlGov
+# (Austria 2017; Czech Rep 2017; Germany 2017; Iceland 2017; Norway 2017; Romania 2016)
+most_recent <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv",
+                        col_types = "ccDDciiiiicccdiiiii") %>% 
+    arrange(country_name, election_date, start_date) %>% 
+    filter(country_name %in% c("Austria", "Czech Republic", "Germany", "Iceland", "Norway", "Romania")) %>% 
+    group_by(country_name) %>% 
+    filter(start_date == max(start_date)) %>% 
+    ungroup() %>% 
+    transmute(country = countrycode::countrycode(country_name, "country.name", "country.name"),
+              year = if_else(country_name == "Romania", 2016, 2017),
+              party_id = party_id,
+              party_name_short = party_name_short,
+              party_name_english = party_name_english, 
+              party = if_else(party_name_short=="Gruene", "GRUNE", party_name_short),
+              prime_minister_last = prime_minister,
+              cabinet_party_last = cabinet_party) %>% 
+    filter(cabinet_party_last == 1)
+
 pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_election.csv",
                col_types = "cccDdiicccdiiiii") %>% 
     filter(election_type == "parliament") %>% 
@@ -559,7 +566,7 @@ pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_elect
     mutate(country = countrycode::countrycode(country_name, "country.name", "country.name"),
            party = party_name_short,
            year = lubridate::year(election_date)) %>% 
-    filter(country %in% (countries %>% countrycode::countrycode("country.name", "country.name"))) %>% 
+    filter(country %in% (countries %>% countrycode::countrycode("country.name", "country.name"))) %>%
     mutate(country = if_else(str_detect(country, "Kingdom"), "United Kingdom", country),
            party_name_short = if_else(party_name_short=="Gruene", "GRUNE", party_name_short)) %>% 
     filter(cabinet_party_last == 1) %>% 
@@ -570,13 +577,15 @@ pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_elect
     ungroup() %>% 
     select(-year, -election1) %>% 
     rename(year = year1) %>% 
-    filter(year >= 1945)
+    filter(year >= 1945) %>% 
+    bind_rows(most_recent) %>% 
+    arrange(country, year, party)
 
-# Generate party abbreviations that match those in change_data
+# Generate party abbreviations that match those in change_data0
 check_matches <- function(cc) {
     pg_parties <- pg %>% filter(country==cc) %>% pull(party) %>% unique() %>% sort()
     
-    cd_data <- change_data %>% filter(country==cc) 
+    cd_data <- change_data0 %>% filter(country==cc) 
     
     max_names <- cd_data %>% 
         pull(party) %>% 
@@ -656,7 +665,6 @@ pg$party[pg$country_name=="France" & pg$party_name_short=="UDF|MD"] <- "MoDem"
 pg$party[pg$country_name=="France" & pg$party_name_short=="IR|DL"] <- "RI"
 pg$party[pg$country_name=="France" & pg$party_name_short=="PRL"] <- "CNIP"
 pg$party[pg$country_name=="France" & pg$party_name_short=="REM"] <- "LREM"
-pg$party[pg$country_name=="France" & pg$party_name_short=="UDSR"] <- "PR-UDSR"
 pg$party[pg$country_name=="France" & pg$party_name_short=="V"] <- "LV"
 
 # Finland done
@@ -747,7 +755,6 @@ pg$party[pg$country_name=="Poland" & pg$party_name_short=="D|W|U"] <- "UD"
 
 # Romania done
 pg$party[pg$country_name=="Romania" & pg$party_name_short=="PNT-CD"] <- "PNTCD" 
-pg$party[pg$country_name=="Romania" & pg$party_name_short=="PC"] <- "PSD+PC"
 pg$party[pg$country_name=="Romania" & pg$party_name_short=="PSDR"] <- "PDSR"
 
 # Slovakia done
@@ -778,13 +785,14 @@ pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Con"] <- "CON
 pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lab"] <- "LAB" 
 pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lib"] <- "LIB" 
 
-change <- change_data %>%
+# Merge ParlGov data on incumbent governments with change_data0 using all past names of each party
+change <- change_data0 %>%
     inner_join(pg %>%
                    select(country, party, year, prime_minister_last, cabinet_party_last, election_id),
                by = c("country", "name1" = "party", "year"))
 
 for (i in 2:max_names) {
-    temp <- inner_join(change_data %>%
+    temp <- inner_join(change_data0 %>%
                       mutate_at(vars(ends_with(paste(i))), funs(party_name = identity)),
                   pg %>%
                       select(country, party, year, prime_minister_last, cabinet_party_last, election_id), 
@@ -794,46 +802,31 @@ for (i in 2:max_names) {
 }
 rm(temp)
 
-change2 <- change_data %>% 
+# Re-add parties that were not part of incumbent governments 
+change2 <- change_data0 %>% 
     anti_join(change %>%
                   select(country, party, year, prime_minister_last, cabinet_party_last),
               by = c("country", "party", "year")) %>% 
     bind_rows(change) %>% 
     mutate(prime_minister_last = if_else(is.na(prime_minister_last), 0L, prime_minister_last),
-           cabinet_party_last = if_else(is.na(cabinet_party_last), 0L, cabinet_party_last))
+           cabinet_party_last = if_else(is.na(cabinet_party_last), 0L, cabinet_party_last)) %>% 
+    distinct() %>% 
+    arrange(country, party, year)
 
-# get ParlGov data on effective number of electoral parties
-enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_election_parameter.csv",
-                 col_types = "iddddddT") %>% 
-    transmute(election_id = election_id,
-              enep = enp_votes) %>% 
-    left_join(read_csv("http://www.parlgov.org/static/data/development-cp1252/view_election.csv",
-                       col_types = "cccDdiicccdiiiii") %>%
-                  select(election_id, country_name, election_date, election_type) %>% 
-                  distinct(),
-              by = "election_id") %>% 
-    mutate(country = countrycode::countrycode(country_name, "country.name", "country.name"),
-           year = lubridate::year(election_date)) %>% 
-    filter(country %in% (countries %>% countrycode::countrycode("country.name", "country.name")) &
-               election_type == "parliament") %>% 
-    mutate(country = if_else(str_detect(country, "Kingdom"), "United Kingdom", country)) %>% 
-    group_by(country, year) %>%
-    arrange(election_date) %>% 
-    mutate(election1 = seq(n()),
-           year1 = year + (election1 - 1)/10) %>% 
-    ungroup() %>% 
-    select(-year, -election1, -election_type) %>% 
-    rename(year = year1)
-
-enep <- read_csv("http://www.parlgov.org/static/data/development-utf-8/viewcalc_election_parameter.csv",
-                 col_types = "iddddddT") %>% 
-    transmute(election_id = election_id,
-              enep = enp_votes)
-
-change3 <- change2 %>%
+# add effective number of electoral parties using least component approach (see Taagepera 1997, 147-148)
+change_data <- change2 %>% 
     group_by(country, year) %>% 
     mutate(election_id = mean(election_id, na.rm = TRUE),
-           test = max(prime_minister_last)) %>% 
+           enep_omit = 1/sum((vote_share/100)^2),
+           other_share = 1 - sum((vote_share/100)),
+           share_min = min(other_share^2, other_share * min(setdiff(vote_share/100, 0))) %>% 
+               max(0),
+           enep_min = 1/(sum((vote_share/100)^2) + share_min),
+           enep1 = (enep_omit + enep_min)/2) %>% 
     ungroup() %>% 
-    left_join(enep, by = "election_id") %>% 
-    arrange(country, year, party)                   #rearrange this
+    select(-enep_omit, -other_share, -share_min, -enep_min) %>% 
+    arrange(country, party, year)
+
+# save
+write_csv(change_data, "data/change_data.csv")
+save(change_data, file="data/change_data.rda")

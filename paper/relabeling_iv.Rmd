@@ -2,9 +2,11 @@
 title: "Consequences of Party Re-labeling"
 author: "Mi-son Kim and Frederick Solt"
 date: "11/22/2017"
-output: html_document
- 
-bibliography: "/Users/fredsolt/Library/texmf/bibtex/bib/FSLibrary.bib"
+output:
+  pdf_document: 
+    keep_tex: true
+  html_document: default
+bibliography: /Users/fredsolt/Library/texmf/bibtex/bib/FSLibrary.bib
 biblio-style: american-political-science-association2
 ---
 
@@ -34,7 +36,7 @@ change_country <- change_party %>%
     summarise(changed_ever = mean(changed_ever))
 ```
 
-We identified Wolfram Nordsieck's [-@Nordsieck2014] \href{http://www.parties-and-elections.eu}{Parties and Elections in Europe} as the best available cross-national source on parties' names.  Norsieck has drawn on a host of country-specific resources to carefully identify the parties that contested national elections across the continent, the names they ran on, and their vote shares.  One disadvantage of this source, however, is that the information it contains is spread across many separate webpages and the information on party names appears only as blocks of text.  Nevertheless, taking advantage of the webscraping and text-handling capabilities of the `R` packages `XML` \citep{Lang2015} and `stringr` [@Wickham2015], we were able to collect and transform the data into a format suitable for analysis.  Our resulting dataset encompasses `r dim(change_party)[1]` parties in `r dim(change_election)[1]` different elections held in 31 European democracies (all 28 current EU members, plus Iceland, Norway, and Switzerland), for a total of `r dim(change_data)[1]` party-election observations.  Our variable of interest, relabeling, is dichotomous, taking on a value of one when a preexisting party runs with a different name than it used in the previous election and zero otherwise.\footnote{\doublespacing As the example of the French Gaullists given above suggests, it may be the case that not all name changes are in fact equal: sometimes parties retain one or more words---or more rarely, the party acronym---as hints of their previous label to cue voters.  We leave exploration of these `partial' name changes for future research.} 
+We identified Wolfram Nordsieck's [-@Nordsieck2014] \href{http://www.parties-and-elections.eu}{Parties and Elections in Europe} as the best available cross-national source on parties' names.  Norsieck has drawn on a host of country-specific resources to carefully identify the parties that contested national elections across the continent, the names they ran on, and their vote shares.  One disadvantage of this source, however, is that the information it contains is spread across many separate webpages and the information on party names appears only as blocks of text.  Nevertheless, taking advantage of the webscraping and text-handling capabilities of the `R` packages `XML` [@Lang2015] and `stringr` [@Wickham2015], we were able to collect and transform the data into a format suitable for analysis.  Our resulting dataset encompasses `r dim(change_party)[1]` parties in `r dim(change_election)[1]` different elections held in 31 European democracies (all 28 current EU members, plus Iceland, Norway, and Switzerland), for a total of `r dim(change_data)[1]` party-election observations.  Our variable of interest, relabeling, is dichotomous, taking on a value of one when a preexisting party runs with a different name than it used in the previous election and zero otherwise.^[As the example of the French Gaullists given above suggests, it may be the case that not all name changes are in fact equal: sometimes parties retain one or more words---or more rarely, the party acronym---as hints of their previous label to cue voters.  We leave exploration of these `partial' name changes for future research.]
 
 ```{r make_plots, include=FALSE}
 library(scales)
@@ -150,18 +152,39 @@ change_data1 <- change_data %>%
     group_by(country, year)
 
 # Pedersen index of volatility
-pederson <- change_data1 %>% 
-    group_by(country, election) %>% 
-    summarize(pederson = sum(vote_diff)/2) %>% 
+pedersen <- change_data1 %>% 
+    group_by(country, year) %>% 
+    summarize(pedersen = sum(vote_diff)/2) %>% 
     group_by(country) %>% 
-    mutate(prev_elec = lag(election))
+    mutate(year_lag = lag(year)) %>% 
+    ungroup()
 
-change_data1 <- change_data1 %>% 
-    left_join(pederson %>% select(-election), 
-              by = c("country" = "country", "election" = "prev_elec")) %>% 
-    rename(pederson_lag = pederson)
+change_data2 <- change_data1 %>% 
+    left_join(pedersen %>% select(-year), 
+              by = c("country" = "country", "year" = "year_lag")) %>% 
+    rename(pedersen_lag = pedersen, votes = vote_share) %>% 
+    group_by(country, party) %>%
+    arrange(country, party, year) %>% 
+    mutate(cparty = paste(country, party) %>% str_replace_all(" ", "_") %>% tolower(),
+           votes_gain_abs = votes - lag(votes),
+           votes_gain_rel = votes/lag(votes),
+           log_party_age = log1p(party_age)) %>% 
+    ungroup() %>% 
+    select(country, year, party, cparty, election,
+           change, log_party_age, r_avg_vote, cabinet_party_last, 
+           enep_lag, 
+           name_exp, elec_shock, pedersen_lag, 
+           votes, votes_gain_abs, votes_gain_rel) %>% 
+    filter(complete.cases(.) & votes_gain_rel!=Inf) 
 
 
+
+
+
+```
+
+
+```{r}
 
 
 ```

@@ -504,7 +504,7 @@ change_data0 <- change_data0 %>%
     mutate(change = if_else(vote_share == running_vote, 0, change)) %>% # first election is not a *re*branding
     arrange(country, party, -year) %>% 
     mutate(running_vote = cumsum(vote_share)) %>%  
-    filter(!running_vote == 0 ) %>% # drop party-elections when party never receives votes again (disbanded)
+    filter(!(vote_share == 0 & lead(running_vote) == 0)) %>% # drop party-elections after party never receives votes again (disbanded)
     select(-running_vote) %>% 
     ungroup() %>% 
     arrange(country, party, year) %>% 

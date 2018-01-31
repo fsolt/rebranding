@@ -3,9 +3,9 @@ title: "Consequences of Party Re-labeling"
 author: "Mi-son Kim and Frederick Solt"
 date: "11/22/2017"
 output:
-  html_document: default
   pdf_document: 
     keep_tex: true
+  html_document: default
 bibliography: /Users/fredsolt/Library/texmf/bibtex/bib/FSLibrary.bib
 biblio-style: american-political-science-association2
 ---
@@ -167,12 +167,14 @@ change_data2 <- change_data1 %>%
     mutate(cparty = paste(country, party) %>% str_replace_all(" ", "_") %>% tolower(),
            votes_gain_abs = votes - lag(votes),
            votes_gain_rel = votes/lag(votes),
-           log_party_age = log1p(party_age)) %>% 
+           log_party_age = log1p(party_age),
+           pedersen_lag = lag(pedersen),
+           election = as.numeric(as.factor(paste(country, year)))) %>% 
     ungroup() %>% 
-    select(country, year, party, cparty,
+    select(country, year, party, cparty, election,
            change, log_party_age, r_avg_vote, cabinet_party_last, 
            enep_lag, 
-           name_exp, elec_shock, pedersen, 
+           name_exp, elec_shock, pedersen_lag, 
            votes, votes_gain_abs, votes_gain_rel) %>% 
     filter(complete.cases(.) & votes_gain_rel!=Inf) 
 ```
@@ -188,27 +190,27 @@ base_model <- "log_party_age +
 
 # base model
 t1m0 <- glmer(as.formula(paste("change ~", base_model, " +
-                (1|cparty) + (1|year) + (1|country)")),
+                (1|cparty) + (1|election) + (1|country)")),
              data = change_data2, family = "binomial", nAGQ = 0)
 
 # brands
 t1m1 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp +
-                (1|cparty) + (1|year) + (1|country)")),
+                (1|cparty) + (1|election) + (1|country)")),
              data = change_data2, family = "binomial", nAGQ = 0)
 
 # shocks
 t1m2 <- glmer(as.formula(paste("change ~", base_model, "+ elec_shock +
-                (1|cparty) + (1|year) + (1|country)")),
+                (1|cparty) + (1|election) + (1|country)")),
              data = change_data2, family = "binomial", nAGQ = 0)
 
 # volatility 
-t1m3 <- glmer(as.formula(paste("change ~", base_model, "+ pedersen +
-                (1|cparty) + (1|year) + (1|country)")),
+t1m3 <- glmer(as.formula(paste("change ~", base_model, "+ pedersen_lag +
+                (1|cparty) + (1|election) + (1|country)")),
              data = change_data2, family = "binomial", nAGQ = 0)
 
 # all three 
-t1m4 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp + elec_shock + pedersen +
-                (1|cparty) + (1|year) + (1|country)")),
+t1m4 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp + elec_shock + pedersen_lag +
+                (1|cparty) + (1|election) + (1|country)")),
              data = change_data2, family = "binomial", nAGQ = 0)
 ```
 
@@ -387,5 +389,73 @@ fd.plot <- ggplot(data = t1m4.fd, aes(y = no, x = fd)) +
 fd.plot
 ```
 
+
+```{r}
+library(ebal)
+
+get_ebal_weights <- function(df, treatment, exclude, targets = c(1, 2, 3)) {
+    vars_to_keep <- df %>% 
+        select(-one_of(c(exclude, treatment))) %>% 
+        names()
+    X <- df %>% select(vars_to_keep)
+    if (targets == 3) {
+        X1 <- matrixmaker(as.matrix(X)) %>% 
+            as.data.frame() %>% 
+            select(-one_of(names(.)[duplicated(t(.)) %>% which()]))
+    } else if (targets == 2) {
+        X1 <- getsquares(X)
+     } else {
+        X1 <- X
+    }
+    c_ebal <- ebalance(Treatment = df[[treatment]], X = X1)
+    df <- as.data.frame(df)
+    df$wt <- 1
+    df$wt[df[[treatment]]==0] <- c_ebal$w
+    
+    return(df$wt)
+}
+
+to_exclude <- c("votes", "votes_gain_abs", "votes_gain_rel", "country", "year", "party", "cparty")
+
+change_data3 <- change_data2 %>% 
+    mutate(wt = get_ebal_weights(., treatment = "change", exclude = to_exclude, targets = 3))
+```
+
+
+```{r}
+m1 <- lme4::lmer(data = change_data3, votes_gain_rel ~ change +
+                     log_party_age + 
+                     r_avg_vote + 
+                     cabinet_party_last + 
+                     enep_lag + name_exp + elec_shock + pedersen_lag +
+                     (1|cparty) + (1|year) + (1|country),
+                 weights = wt)
+
+summary(m1)
+
+lme4::lmer(data = change_data3, votes_gain_rel ~ change +
+                     log_party_age + 
+                     r_avg_vote + 
+                     cabinet_party_last + 
+                     enep_lag + name_exp + elec_shock + pedersen_lag +
+                     (1|cparty) + (1|year) + (1|country)) %>% summary()
+
+m2 <- lme4::lmer(data = change_data3, votes_gain_abs ~ change +
+                     log_party_age + 
+                     r_avg_vote + 
+                     cabinet_party_last + 
+                     enep_lag + name_exp + elec_shock + pedersen_lag +
+                     (1|cparty) + (1|year) + (1|country),
+                 weights = wt)
+
+summary(m2)
+
+lme4::lmer(data = change_data3, votes_gain_abs ~ change +
+                     log_party_age + 
+                     r_avg_vote + 
+                     cabinet_party_last + 
+                     enep_lag + name_exp + elec_shock + pedersen_lag +
+                     (1|cparty) + (1|year) + (1|country)) %>% summary()
+```
 
 # References

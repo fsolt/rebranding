@@ -6,8 +6,14 @@ change_data <- import("data/change_data.rda") %>%
            change = if_else(party == "OPEN VLD (VLD, PVV)" & (year == 1995 | year == 2003), 1, change),
            party = if_else(party == "SD" & country == "Denmark", "S", party),
            party = if_else(party == "DIE", "DIE LINKE (PDS)", party),
-           change = if_else(party == "DIE LINKE (PDS)" & year == 2005, 1, change)) %>% 
-    filter(!(party == "KMU" & country == "Estonia")) %>% 
+           change = if_else(party == "DIE LINKE (PDS)" & year == 2005, 1, change),
+           party = if_else(party == "IDV" & country == "Italy", "IDV (RC)", party),
+           change = if_else(party == "PNM (PSIUP)" & year == 1948, 1, change),
+           party = if_else(str_detect(party, "RETE 1994-2001,"), "RETE", change)) %>% 
+    filter(!(party == "KMU" & country == "Estonia") &               # these are added back below
+               !(party == "NPSI-DCA (PS)" & country == "Italy") &
+               !(party == "RnP (PSI, SI, GS)" & country == "Italy") &
+               !(party == "VERDI (UDN)" & country == "Italy")) %>% 
     distinct() # to catch doubled obs for S 2011 in Denmark
 
 old_change_data <- import("data/old_change_data.RData") %>% 
@@ -61,7 +67,14 @@ old_change_data <- import("data/old_change_data.RData") %>%
                party == "NLP" |
                (party == "SF" & country == "Ireland" & vote_share == 0) |
                party == "DE" & year == 2004 |
-               
+               party == "LAM" |
+               party == "LD-FT (MSFT)" |
+               party == "NPSI-DCA (SL, PS)" |
+               party == "PS (PSI, SI, GS, RnP)" |
+               party == "RAD (LP, LPS, LB)" |
+               party == "SVP" |
+               (party == "UV" & country == "Italy") |
+               party == "VERDI (LV)"
                )
 
 

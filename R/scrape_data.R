@@ -129,8 +129,14 @@ correct_for_alliances <- function(df, cc) {
 change_data0 <- map_df(countries, function(country) {
     cat("Processing", country, "\n")
     
-    country_page <- paste0("http://www.parties-and-elections.eu/", country, ".html") %>% 
-        read_html()
+    ia_date <- "20180207182123"
+    ia_backup_date <- "20170811222220"
+    
+    country_page <- tryCatch(paste0("https://web.archive.org/web/", ia_date, "/http://www.parties-and-elections.eu/", country, ".html") %>% 
+        read_html(), error = function(err) {
+            paste0("https://web.archive.org/web/", ia_backup_date, "/http://www.parties-and-elections.eu/", country, ".html") %>% 
+                read_html()
+        })
     
     last_two_years <- country_page %>%
         html_nodes("table:nth-child(6) td") %>%
@@ -215,7 +221,7 @@ change_data0 <- map_df(countries, function(country) {
     archive_links <- country_page %>% 
         html_nodes(".bottom") %>% 
         html_attr("href") %>% 
-        paste0("http://www.parties-and-elections.eu/", .)
+        paste0("https://web.archive.org/web/20180118220437/http://www.parties-and-elections.eu/", .)
     
     archive_votes <- map_df(archive_links, function(a_link) {
         tab0 <- read_html(a_link) %>%
@@ -375,7 +381,7 @@ change_data0 <- map_df(countries, function(country) {
                 distinct() %>% 
                 arrange(party, year)
             
-        }
+        } 
         return(changes)
     })
     
@@ -504,7 +510,7 @@ change_data0 <- change_data0 %>%
     mutate(change = if_else(vote_share == running_vote, 0, change)) %>% # first election is not a *re*branding
     arrange(country, party, -year) %>% 
     mutate(running_vote = cumsum(vote_share)) %>%  
-    filter(!(vote_share == 0 & lead(running_vote) == 0)) %>% # drop party-elections after party never receives votes again (disbanded)
+    filter(!vote_share == 0) %>% # drop party-elections after party never receives votes again (disbanded)
     select(-running_vote) %>% 
     ungroup() %>% 
     arrange(country, party, year) %>% 
@@ -611,7 +617,7 @@ check_matches <- function(cc) {
 
 # Belgium done
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="BSP-PSB"] <- "BSP/PSB"
-pg$party[pg$country_name=="Belgium" & pg$party_name_short=="CVP"] <- "CVP/PSC"
+pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PSC-CVP"] <- "CVP"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="Ecolo"] <- "ECOLO"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="AGL-Gr"] <- "GROEN"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="KPB-PCB"] <- "KPB/PCB"
@@ -619,7 +625,6 @@ pg$party[pg$country_name=="Belgium" & pg$party_name_short=="LD|LDD"] <- "LDD"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="Pp"] <- "PP"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PVV|VLD"] <- "PVV"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PSC-CDH"] <- "CDH"
-pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PSC-CVP"] <- "CVP/PSC"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="LP-PL"] <- "LP/PL"
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="SPa+Spi"] <- "SP.A"
 
@@ -830,3 +835,6 @@ change_data <- change2 %>%
 # save
 write_csv(change_data, "data/change_data.csv")
 save(change_data, file="data/change_data.rda")
+
+# old data
+load("change_data.RData")

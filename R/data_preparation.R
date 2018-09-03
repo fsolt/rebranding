@@ -225,19 +225,12 @@ pg$party[pg$country_name=="Belgium" & pg$party_name_short=="PVV|VLD"] <- "PVV/PL
 pg$party[pg$country_name=="Belgium" & pg$party_name_short=="SPa+Spi"] <- "SP.A"
 
 # Bulgaria Parlgov data starts in 1991; done
-#pg$party[pg$country_name=="Bulgaria" & pg$party_name_short=="Ataka"] <- "ATAKA"
 pg$party[pg$country_name=="Bulgaria" & pg$party_name_short=="KzB|DL"] <- "KB"
-pg$party[pg$country_name=="Bulgaria" & pg$party_name_short=="ZS-AS"] <- "BZNS-AS"
 pg$party[pg$country_name=="Bulgaria" & pg$party_name_short=="ZNS"] <- "BZNS"
-pg$party[pg$country_name=="Bulgaria" & pg$party_name_short=="BNS"] <- "NS"
 
 # Croatia done
-pg$party[pg$country_name=="Croatia" & pg$party_name_short=="HDSS"] <- "HDS"
-pg$party[pg$country_name=="Croatia" & pg$party_name_short=="MB"] <- "MB365"
 pg$party[pg$country_name=="Croatia" & pg$party_name_short=="Most"] <- "MOST"
-pg$party[pg$country_name=="Croatia" & pg$party_name_short=="NS"] <- "NSR"
 pg$party[pg$country_name=="Croatia" & pg$party_name_short=="SPH"] <- "SDP"
-pg$party[pg$country_name=="Croatia" & pg$party_name_short=="ZiZi"] <- "ZZ"
 
 # Cyprus Parlgov data starts in 1976; done
 pg$party[pg$country_name=="Cyprus" & pg$party_name_short=="EK"] <- "EVROKO"

@@ -10,7 +10,7 @@ change_data <- import("data/change_data.rda") %>%
            change = if_else(party == "DIE LINKE (PDS)" & year == 2005, 1, change),
            party = if_else(party == "IDV" & country == "Italy", "IDV (RC)", party),
            change = if_else(party == "PNM (PSIUP)" & year == 1948, 1, change),
-           party = if_else(str_detect(party, "RETE 1994-2001,"), "RETE", change),
+           party = if_else(str_detect(party, "RETE 1994-2001,"), "RETE", party),
            change = if_else(party == "AP (DNA)" & year == 2013, 1, change),
            party = if_else(party == "CDU (APU)", "CDU (PCP, APU)", party),
            change = if_else(party == "SZ (SZS)" & year == 1992, 1, change),
@@ -24,7 +24,8 @@ change_data <- import("data/change_data.rda") %>%
                !(party == "AWS" & country == "Poland") &
                !(party == "SLD (PPR, PZPR, LiD, ZL)" & year == 2011 & change == 0) &
                !(party == "CDU (PCP, APU)" & year > 2009)) %>% 
-    mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II"))
+    mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II")) %>% 
+    select(-prime_minister_last, -cabinet_party_last, -election_id, -enep1)
         
     
 old_change_data <- import("data/old_change_data.RData") %>% 
@@ -125,7 +126,8 @@ old_change_data <- import("data/old_change_data.RData") %>%
            year = floor(year))
     
 
-ncd <- bind_rows(change_data, old_change_data)
+ncd <- bind_rows(change_data, old_change_data) %>% 
+    
 
 
 

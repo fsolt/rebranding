@@ -189,7 +189,7 @@ pg <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_elect
 
 # Generate party abbreviations that match those in change_data0
 check_matches <- function(cc) {
-    pg_parties <- pg %>% filter(country==cc) %>% pull(party) %>% unique() %>% sort()
+    pg_parties <- pg %>% filter(country_name==cc) %>% pull(party) %>% unique() %>% sort()
     
     cd_data <- ncd %>% filter(country==cc) 
     
@@ -233,13 +233,12 @@ pg$party[pg$country_name=="Croatia" & pg$party_name_short=="Most"] <- "MOST"
 pg$party[pg$country_name=="Croatia" & pg$party_name_short=="SPH"] <- "SDP"
 
 # Cyprus Parlgov data starts in 1976; done
-pg$party[pg$country_name=="Cyprus" & pg$party_name_short=="EK"] <- "EVROKO"
 
 # Czech Republic done
-pg$party[pg$country_name=="Czech Republic" & pg$party_name_short=="KSCM" & pg$year==1992] <- "LB"
+pg$party[pg$country_name=="Czech Republic" & pg$party_name_short=="KDS"] <- "ODS-KDS"
 
 # Denmark done
-pg$party[pg$country_name=="Denmark" & pg$party_name_short=="En-O"] <- "EL"
+pg$party[pg$country_name=="Denmark" & pg$party_name_short=="DS"] <- "DU"
 pg$party[pg$country_name=="Denmark" & pg$party_name_short=="KrF"] <- "KRF"
 pg$party[pg$country_name=="Denmark" & pg$party_name_short=="RF"] <- "KRF"
 pg$party[pg$country_name=="Denmark" & pg$party_name_short=="Sd"] <- "S"

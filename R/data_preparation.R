@@ -309,20 +309,22 @@ pg$party[pg$country_name=="Ireland" & pg$party_name_short=="Lab"] <- "LAB"
 pg$party[pg$country_name=="Ireland" & pg$party_name_short=="NL"] <- "NLP"
 
 # Italy done
-pg$party[pg$country_name=="Italy" & pg$party_name_short=="BN"] <- "BNL"
-pg$party[pg$country_name=="Italy" & pg$party_name_short=="DL-M"] <- "DL"
-pg$party[pg$country_name=="Italy" & pg$party_name_short=="ID"] <- "DL"
-pg$party[pg$country_name=="Italy" & pg$party_name_short=="PpP"] <- "PRODI"
+#pg$party[pg$country_name=="Italy" & pg$party_name_short=="BN"] <- "BNL"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="FdV"] <- "VERDI"
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="FI-PdL"] <- "FI"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="ID"] <- "DL"
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="IdV"] <- "IDV"
-pg$party[pg$country_name=="Italy" & pg$party_name_short=="MpA"] <- "MPA"
-pg$party[pg$country_name=="Italy" & pg$party_name_short=="SL"] <- "SEL"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="NPSI"] <- "NPSI-DCA"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="PpP"] <- "PRODI"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="P|SDI"] <- "PSI"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="PdCI"] <- "PDCI"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="R"] <- "RAD"
+pg$party[pg$country_name=="Italy" & pg$party_name_short=="RiI"] <- "RI"
 pg$party[pg$country_name=="Italy" & pg$party_name_short=="UC"] <- "UDC"
 
-## From here on down, only parties that have ever been part of government are matched
 # Latvia done
-pg$party[pg$country_name=="Latvia" & pg$party_name_short=="LRa"] <- "LRA"
 pg$party[pg$country_name=="Latvia" & pg$party_name_short=="NA/TB/LNNK"] <- "NA"
+pg$party[pg$country_name=="Latvia" & pg$party_name_short=="PS"] <- "V"
 
 # Lithuania done
 pg$party[pg$country_name=="Lithuania" & pg$party_name_short=="LiCS-TPP"] <- "LiCS"
@@ -338,6 +340,7 @@ pg$year[pg$country_name=="Luxembourg" & pg$year==1968] <- 1969
 # Netherlands done
 
 # Norway done
+pg$party[pg$country_name=="Norway" & pg$party_name_short=="Fr"] <- "FRP" 
 pg$party[pg$country_name=="Norway" & pg$party_name_short=="KrF"] <- "KRF" 
 pg$party[pg$country_name=="Norway" & pg$party_name_short=="Sp"] <- "SP" 
 
@@ -348,7 +351,6 @@ pg$party[pg$country_name=="Poland" & pg$party_name_short=="D|W|U"] <- "UD"
 
 # Romania done
 pg$party[pg$country_name=="Romania" & pg$party_name_short=="PNT-CD"] <- "PNTCD" 
-pg$party[pg$country_name=="Romania" & pg$party_name_short=="PSDR"] <- "PDSR"
 
 # Slovakia done
 pg$party[pg$country_name=="Slovakia" & pg$party_name_short=="DUS"] <- "DU" 
@@ -357,7 +359,6 @@ pg$party[pg$country_name=="Slovakia" & pg$party_name_short=="Smer"] <- "SMER"
 
 # Slovenia
 pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="DeSUS"] <- "DESUS" 
-pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="Zares"] <- "ZARES"
 pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="LZJ-PS"] <- "PS"
 pg$party[pg$country_name=="Slovenia" & pg$party_name_short=="ZL-SD"] <- "ZLSD"
 
@@ -368,8 +369,8 @@ pg$party[pg$country_name=="Spain" & pg$party_name_short=="AP-P"] <- "PP"
 pg$party[pg$country_name=="Sweden" & pg$party_name_short=="SAP"] <- "S" 
 
 # Switzerland done
-pg$party[pg$country_name=="Switzerland" & pg$party_name_short=="CVP-PDC"] <- "CVP"
 pg$party[pg$country_name=="Switzerland" & pg$party_name_short=="FDP-PRD"] <- "FDP"
+pg$party[pg$country_name=="Switzerland" & pg$party_name_short=="KK/CVP"] <- "CVP"
 pg$party[pg$country_name=="Switzerland" & pg$party_name_short=="SP-PS"] <- "SP" 
 pg$party[pg$country_name=="Switzerland" & pg$party_name_short=="SVP-UDC"] <- "SVP" 
 

@@ -245,8 +245,8 @@ pg$party[pg$country_name=="Denmark" & pg$party_name_short=="Sd"] <- "S"
 
 # Estonia done
 pg$party[pg$country_name=="Estonia" & pg$party_name_short=="EKK"] <- "KMU"
-pg$party[pg$country_name=="Estonia" & pg$party_name_short=="ERe"] <- "RE"
 pg$party[pg$country_name=="Estonia" & pg$party_name_short=="ERa"] <- "ERL"
+pg$party[pg$country_name=="Estonia" & pg$party_name_short=="ERe"] <- "RE"
 pg$party[pg$country_name=="Estonia" & pg$party_name_short=="RKI"] <- "KE"
 pg$party[pg$country_name=="Estonia" & pg$party_name_short=="SDE|M"] <- "M"
 

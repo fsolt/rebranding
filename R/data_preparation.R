@@ -380,13 +380,13 @@ pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lab"] <- "LAB
 pg$party[pg$country_name=="United Kingdom" & pg$party_name_short=="Lib"] <- "LIB" 
 
 # Merge ParlGov data on incumbent governments with change_data0 using all past names of each party
-change <- change_data0 %>%
+change <- ncd %>%
     inner_join(pg %>%
                    select(country, party, year, prime_minister_last, cabinet_party_last, election_id),
                by = c("country", "name1" = "party", "year"))
 
 for (i in 2:max_names) {
-    temp <- inner_join(change_data0 %>%
+    temp <- inner_join(ncd %>%
                            mutate_at(vars(ends_with(paste(i))), funs(party_name = identity)),
                        pg %>%
                            select(country, party, year, prime_minister_last, cabinet_party_last, election_id), 
@@ -397,7 +397,7 @@ for (i in 2:max_names) {
 rm(temp)
 
 # Re-add parties that were not part of incumbent governments 
-change2 <- change_data0 %>% 
+change2 <- ncd %>% 
     anti_join(change %>%
                   select(country, party, year, prime_minister_last, cabinet_party_last),
               by = c("country", "party", "year")) %>% 

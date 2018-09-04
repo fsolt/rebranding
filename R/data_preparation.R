@@ -408,7 +408,7 @@ change2 <- ncd %>%
     arrange(country, party, year)
 
 # add effective number of electoral parties using least component approach (see Taagepera 1997, 147-148)
-change_data <- change2 %>% 
+new_change_data <- change2 %>% 
     group_by(country, year) %>% 
     mutate(election_id = mean(election_id, na.rm = TRUE),
            enep_omit = 1/sum((vote_share/100)^2),
@@ -421,7 +421,7 @@ change_data <- change2 %>%
     select(-enep_omit, -other_share, -share_min, -enep_min) %>% 
     arrange(country, party, year)
 
-
+save(new_change_data, file="data/new_change_data.rda")
 
 
 

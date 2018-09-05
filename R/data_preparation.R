@@ -407,6 +407,19 @@ change2 <- ncd %>%
     distinct() %>% 
     arrange(country, party, year)
 
+# EU + 3 countries only
+countries <- read_html("https://en.wikipedia.org/wiki/Member_state_of_the_European_Union") %>%
+    html_table(fill=TRUE) %>%   # generates a list
+    nth(2) %>%                  # get second element of the list
+    as_tibble() %>%             # make it a tibble (data_frame)
+    pull(`Country name`) %>% 
+    str_trim() %>% 
+    str_replace("\\[.*\\]", "") %>% # omit footnotes
+    # str_replace(" ", "") %>%        # collapse words
+    # str_replace("Republic", "ia") %>% 
+    # tolower() %>% 
+    c(., "Iceland", "Norway", "Switzerland")
+
 # add effective number of electoral parties using least component approach (see Taagepera 1997, 147-148)
 new_change_data <- change2 %>% 
     group_by(country, year) %>% 
@@ -419,7 +432,8 @@ new_change_data <- change2 %>%
            enep1 = (enep_omit + enep_min)/2) %>% 
     ungroup() %>% 
     select(-enep_omit, -other_share, -share_min, -enep_min) %>% 
-    arrange(country, party, year)
+    arrange(country, party, year) %>% 
+    filter(country %in% countries)
 
 save(new_change_data, file="data/new_change_data.rda")
 

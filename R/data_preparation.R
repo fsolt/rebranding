@@ -34,11 +34,32 @@ change_data <- import("data/change_data.rda") %>%
                !(party == "PCTVL (L)" & country == "Latvia") &
                !(party == "AWS" & country == "Poland") &
                !(party == "SLD (PPR, PZPR, LiD, ZL)" & year == 2011 & change == 0) &
-               !(party == "CDU (PCP, APU)" & year > 2009)) %>% 
+               !(party == "CDU (PCP, APU)" & year > 2009) &
+               !(party == "FRS" & year == 1980) &
+               !(country == "Portugal" & (year == 1979 | year==1980)) &
+               !(party == "PCP" & country == "Portugal")) %>% 
     mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II")) %>% 
     select(-prime_minister_last, -cabinet_party_last, -election_id, -enep1)
+
+# Standardizing the coalition results in Portugal's 1979 & 1980 elections (APU added in old_change_data)
+portugal1979 <- tibble(country = "Portugal",
+                       party = c("CDS-PP (CDS)", "PPM (PPM-MPT)", "PS", "PSD (PPD)", "UDP"),
+                       name1 = c("CDS-PP", "PPM", "PS", "PSD", "UDP"),
+                       name2 = c("CDS", "PPM-MPT", NA, "PPD", NA),
+                       election = "1979",
+                       vote_share = round(c(42.5*43/121+.4, 42.5*5/121, 27.3, 42.5*73/121+2.4, 2.2), 1),
+                       change = 0,
+                       year = 1979)
+
+portugal1980 <- tibble(country = "Portugal",
+                       party = c("CDS-PP (CDS)", "PPM (PPM-MPT)", "PS", "PSD (PPD)", "UDP"),
+                       name1 = c("CDS-PP", "PPM", "PS", "PSD", "UDP"),
+                       name2 = c("CDS", "PPM-MPT", NA, "PPD", NA),
+                       election = "1980",
+                       vote_share = round(c(44.9*46/126+.2, 44.9*6/126, 27.3*63/71+1.1, 44.9*74/126+2.5, 1.4), 1),
+                       change = 0,
+                       year = 1980)
         
-    
 old_change_data <- import("data/old_change_data.RData") %>% 
     mutate_if(is.factor, as.character) %>% 
     anti_join(change_data, by = c("country", "party", "year")) %>% 
@@ -136,8 +157,7 @@ old_change_data <- import("data/old_change_data.RData") %>%
     mutate(election = str_replace(as.character(year), "\\.1", "II"),
            year = floor(year))
     
-
-ncd <- bind_rows(change_data, old_change_data) 
+ncd <- bind_rows(change_data, old_change_data, portugal1979, portugal1980) 
     
 # get ParlGov data on incumbent status
 last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv",

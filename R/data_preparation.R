@@ -21,7 +21,6 @@ change_data <- import("data/change_data.rda") %>%
            change = if_else(party == "PNM (PSIUP)" & year == 1948, 1, change),
            party = if_else(str_detect(party, "RETE 1994-2001,"), "RETE", party),
            change = if_else(party == "AP (DNA)" & year == 2013, 1, change),
-           party = if_else(party == "CDU (APU)", "CDU (PCP, APU)", party),
            change = if_else(party == "SZ (SZS)" & year == 1992, 1, change),
            party = if_else(party == "CC (AIC, CC-NC-PNC)" | party == "CC-PNC", "CC-PNC (AIC, CC-NC-PNC, CC)", party),
            change = if_else(party == "CC-PNC (AIC, CC-NC-PNC, CC)" & year == 2015, 1, change)) %>% 
@@ -34,31 +33,49 @@ change_data <- import("data/change_data.rda") %>%
                !(party == "PCTVL (L)" & country == "Latvia") &
                !(party == "AWS" & country == "Poland") &
                !(party == "SLD (PPR, PZPR, LiD, ZL)" & year == 2011 & change == 0) &
-               !(party == "CDU (PCP, APU)" & year > 2009) &
+               !(party == "CDU (APU)") &
                !(party == "FRS" & year == 1980) &
-               !(country == "Portugal" & (year == 1979 | year==1980)) &
-               !(party == "PCP" & country == "Portugal")) %>% 
+               !(country == "Portugal" & (year == 1979 | year==1980))) %>% 
     mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II")) %>% 
     select(-prime_minister_last, -cabinet_party_last, -election_id, -enep1)
 
-# Standardizing the coalition results in Portugal's 1979 & 1980 elections (APU added in old_change_data)
+# Standardizing the coalition results in Portugal's 1979 & 1980 elections
 portugal1979 <- tibble(country = "Portugal",
-                       party = c("CDS-PP (CDS)", "PPM (PPM-MPT)", "PS", "PSD (PPD)", "UDP"),
-                       name1 = c("CDS-PP", "PPM", "PS", "PSD", "UDP"),
-                       name2 = c("CDS", "PPM-MPT", NA, "PPD", NA),
+                       party = c("CDS-PP (CDS)", "PCP", "MDP", "PPM (PPM-MPT)", "PS", "PSD (PPD)", "UDP"),
+                       name1 = c("CDS-PP", "PCP", "MDP", "PPM", "PS", "PSD", "UDP"),
+                       name2 = c("CDS", NA, NA, "PPM-MPT", NA, "PPD", NA),
                        election = "1979",
-                       vote_share = round(c(42.5*43/121+.4, 42.5*5/121, 27.3, 42.5*73/121+2.4, 2.2), 1),
+                       vote_share = round(c(42.5*43/121+.4, 18.8*44/48, 18.8*4/48, 42.5*5/121, 27.3, 42.5*73/121+2.4, 2.2), 1),
                        change = 0,
                        year = 1979)
 
 portugal1980 <- tibble(country = "Portugal",
-                       party = c("CDS-PP (CDS)", "PPM (PPM-MPT)", "PS", "PSD (PPD)", "UDP"),
-                       name1 = c("CDS-PP", "PPM", "PS", "PSD", "UDP"),
-                       name2 = c("CDS", "PPM-MPT", NA, "PPD", NA),
+                       party = c("CDS-PP (CDS)", "PCP", "MDP", "PPM (PPM-MPT)", "PS", "PSD (PPD)", "UDP"),
+                       name1 = c("CDS-PP", "PCP", "MDP", "PPM", "PS", "PSD", "UDP"),
+                       name2 = c("CDS", NA, NA, "PPM-MPT", NA, "PPD", NA),
                        election = "1980",
-                       vote_share = round(c(44.9*46/126+.2, 44.9*6/126, 27.3*63/71+1.1, 44.9*74/126+2.5, 1.4), 1),
+                       vote_share = round(c(44.9*46/126+.2, 16.8*39/41, 16.8*2/41, 44.9*6/126, 27.3*63/71+1.1, 44.9*74/126+2.5, 1.4), 1),
                        change = 0,
                        year = 1980)
+
+portugalCDU <- tibble(country = "Portugal",
+                      party = c(rep(c("PCP", "MDP"), times = 2), rep(c("PCP", "PEV"), times = 9)),
+                      year = c(rep(c(1983, 1985, 1987, 1991, 1995, 1999, 2002, 2005, 2009, 2011, 2015), each = 2)),
+                      name1 = party,
+                      election = as.character(year),
+                      vote_share = round(c(18.1*c(41/44, 3/44), #1983
+                                           15.5*c(35/38, 3/38), #1985
+                                           12.1*c(29/31, 2/31), #1987
+                                           8.8*c(15/17, 2/17),  #1991
+                                           8.6*c(13/15, 2/15),  #1995
+                                           9.0*c(15/17, 2/17),  #1999
+                                           7.0*c(10/12, 2/12),  #2002
+                                           7.6*c(12/14, 2/14),  #2005
+                                           7.9*c(13/15, 2/15),  #2009
+                                           7.9*c(14/16, 2/16),  #2011
+                                           8.3*c(15/17, 2/17)  #2015
+                                           ), 1),
+                      change = 0)
         
 old_change_data <- import("data/old_change_data.RData") %>% 
     mutate_if(is.factor, as.character) %>% 
@@ -143,7 +160,6 @@ old_change_data <- import("data/old_change_data.RData") %>%
                party == "ChD-SP (ChD)" |
                party == "PPChD (PChD)" |
                party == "ROP (RP)" |
-               party == "CDU (PCP, APU)" |
                country == "Romania" |
                party == "KDH" |
                party == "MOS" |
@@ -157,7 +173,7 @@ old_change_data <- import("data/old_change_data.RData") %>%
     mutate(election = str_replace(as.character(year), "\\.1", "II"),
            year = floor(year))
     
-ncd <- bind_rows(change_data, old_change_data, portugal1979, portugal1980) 
+ncd <- bind_rows(change_data, old_change_data, portugal1979, portugal1980, portugalCDU) 
     
 # get ParlGov data on incumbent status
 last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv",

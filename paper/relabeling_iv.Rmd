@@ -18,7 +18,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r plot_setup, include=FALSE}
 library(tidyverse)
 
-load("../data/change_data.rda") # run scrape_data.R to generate this file
+load("../data/new_change_data.rda") # run prepare_data.R to generate this file
+change_data <- new_change_data
 
 change_party <- change_data %>%
     group_by(country, party) %>% 
@@ -156,27 +157,29 @@ change_data1 <- change_data %>%
 # Pedersen index of volatility
 pedersen <- change_data1 %>% 
     group_by(country, year) %>% 
-    summarize(pedersen = sum(vote_diff)/2) %>% 
+    summarize(pedersen = sum(vote_diff, na.rm = TRUE)/2) %>% 
+    ungroup() %>% 
+    group_by(country) %>% 
+    mutate(pedersen_lag = lag(pedersen)) %>% 
     ungroup()
 
 change_data2 <- change_data1 %>% 
     left_join(pedersen, by = c("country", "year")) %>% 
-    rename(votes = vote_share) %>% 
+    rename(vote = vote_share) %>% 
     group_by(country, party) %>%
     arrange(country, party, year) %>% 
     mutate(cparty = paste(country, party) %>% str_replace_all(" ", "_") %>% tolower(),
-           votes_gain_abs = votes - lag(votes),
-           votes_gain_rel = votes/lag(votes),
-           log_party_age = log1p(party_age),
-           pedersen_lag = lag(pedersen),
-           election = as.numeric(as.factor(paste(country, year)))) %>% 
+           vote_gain_abs = vote - prev_vote,
+           vote_gain_rel = if_else(prev_vote==0, 1, vote/prev_vote),
+           log_party_age = log1p(party_age)) %>% 
     ungroup() %>% 
-    select(country, year, party, cparty, election,
+    mutate(election = as.numeric(as.factor(paste(country, year)))) %>% 
+    select(country, year, party, cparty, election, election_pcy,
            change, log_party_age, r_avg_vote, cabinet_party_last, 
            enep_lag, 
            name_exp, elec_shock, pedersen_lag, 
-           votes, votes_gain_abs, votes_gain_rel) %>% 
-    filter(complete.cases(.) & votes_gain_rel!=Inf) 
+           vote, prev_vote, vote_gain_abs, vote_gain_rel) %>% 
+    filter(complete.cases(.)) 
 ```
 
 
@@ -218,7 +221,7 @@ t1m4 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp + elec_shock 
 library(texreg)
 
 format_for_texreg <- function(model = NULL) {
-    model.res <- extract(model, include.aic=F, include.bic=F, include.deviance=F, naive=T)
+    model.res <- texreg::extract(model, include.aic=F, include.bic=F, include.deviance=F, naive=T)
     model.res@gof <- model.res@gof[-9]
     model.res@gof.names <- model.res@gof.names[-9]
     model.res@gof.decimal <- model.res@gof.decimal[-9]
@@ -234,7 +237,7 @@ vars <- c("Party Age, Logged", "Party Size", "Incumbent Government", "Electoral 
  
 
 # Three Theories
-texreg(l=models.t1, label="T:models.t1", 
+texreg::texreg(l=models.t1, label="T:models.t1", 
        caption="Predicting Party Relabeling, Cross-Classified Hierarchical Models",
        stars = c(0.001, 0.01, 0.05, 0.1), symbol="\\dagger",
        caption.above=T, 
@@ -415,47 +418,60 @@ get_ebal_weights <- function(df, treatment, exclude, targets = c(1, 2, 3)) {
     return(df$wt)
 }
 
-to_exclude <- c("votes", "votes_gain_abs", "votes_gain_rel", "country", "year", "party", "cparty")
+to_exclude <- c("vote", "vote_gain_abs", "vote_gain_rel", "country", "year", "election", "election_pcy", "party", "cparty")
 
 change_data3 <- change_data2 %>% 
+    mutate(wt = get_ebal_weights(., treatment = "change", exclude = to_exclude, targets = 3))
+
+to_exclude <- setdiff(names(change_data2), c("prev_vote", "change", "cabinet_party_last"))
+
+change_data4 <- change_data2 %>% 
     mutate(wt = get_ebal_weights(., treatment = "change", exclude = to_exclude, targets = 3))
 ```
 
 
 ```{r}
-m1 <- lme4::lmer(data = change_data3, votes_gain_rel ~ change +
+m1 <- lme4::lmer(data = change_data3, vote_gain_rel ~ change +
                      log_party_age + 
                      r_avg_vote + 
                      cabinet_party_last + 
                      enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|year) + (1|country),
+                     (1|cparty) + (1|election) + (1|country),
                  weights = wt)
 
 summary(m1)
 
-lme4::lmer(data = change_data3, votes_gain_rel ~ change +
+# without ebal matching weights: effect is smaller, p < .1
+lme4::lmer(data = change_data3, vote_gain_rel ~ change +
                      log_party_age + 
                      r_avg_vote + 
                      cabinet_party_last + 
                      enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|year) + (1|country)) %>% summary()
+                     (1|cparty) + (1|election) + (1|country)) %>% summary()
 
-m2 <- lme4::lmer(data = change_data3, votes_gain_abs ~ change +
+m2 <- lme4::lmer(data = change_data3, vote_gain_abs ~ change +
                      log_party_age + 
                      r_avg_vote + 
                      cabinet_party_last + 
                      enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|year) + (1|country),
+                     (1|cparty) + (1|election) + (1|country),
                  weights = wt)
 
 summary(m2)
 
-lme4::lmer(data = change_data3, votes_gain_abs ~ change +
+# without ebal matching weights, effect is much smaller (and p > .05)
+lme4::lmer(data = change_data3, vote_gain_abs ~ change +
                      log_party_age + 
                      r_avg_vote + 
                      cabinet_party_last + 
                      enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|year) + (1|country)) %>% summary()
+                     (1|cparty) + (1|election) + (1|country)) %>% summary()
+
+m3 <- lme4::lmer(data = change_data4,
+                 vote ~ prev_vote + change +
+                     cabinet_party_last +
+                     (1|cparty) + (1|election) + (1|country),
+                 weights = wt) %>% summary()
 ```
 
 # References

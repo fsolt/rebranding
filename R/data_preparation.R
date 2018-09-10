@@ -1,4 +1,5 @@
 library(tidyverse)
+library(rvest)
 library(rio)
 
 change_data <- import("data/change_data.rda") %>% 
@@ -190,6 +191,19 @@ old_change_data <- import("data/old_change_data.RData") %>%
            year = floor(year))
     
 ncd <- bind_rows(change_data, old_change_data, cyprus1976, portugal1979, portugal1980, portugalCDU) 
+
+# EU + 3 countries only
+countries <- read_html("https://en.wikipedia.org/wiki/Member_state_of_the_European_Union") %>%
+    html_table(fill=TRUE) %>%   # generates a list
+    nth(2) %>%                  # get second element of the list
+    as_tibble() %>%             # make it a tibble (data_frame)
+    pull(`Country name`) %>% 
+    str_trim() %>% 
+    str_replace("\\[.*\\]", "") %>% # omit footnotes
+    # str_replace(" ", "") %>%        # collapse words
+    # str_replace("Republic", "ia") %>% 
+    # tolower() %>% 
+    c(., "Iceland", "Norway", "Switzerland")
     
 # get ParlGov data on incumbent status
 last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv",
@@ -458,19 +472,6 @@ change2 <- ncd %>%
            cabinet_party_last = if_else(is.na(cabinet_party_last), 0L, cabinet_party_last)) %>% 
     distinct() %>% 
     arrange(country, party, year)
-
-# EU + 3 countries only
-countries <- read_html("https://en.wikipedia.org/wiki/Member_state_of_the_European_Union") %>%
-    html_table(fill=TRUE) %>%   # generates a list
-    nth(2) %>%                  # get second element of the list
-    as_tibble() %>%             # make it a tibble (data_frame)
-    pull(`Country name`) %>% 
-    str_trim() %>% 
-    str_replace("\\[.*\\]", "") %>% # omit footnotes
-    # str_replace(" ", "") %>%        # collapse words
-    # str_replace("Republic", "ia") %>% 
-    # tolower() %>% 
-    c(., "Iceland", "Norway", "Switzerland")
 
 # add effective number of electoral parties using least component approach (see Taagepera 1997, 147-148)
 new_change_data <- change2 %>% 

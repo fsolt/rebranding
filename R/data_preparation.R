@@ -25,6 +25,7 @@ change_data <- import("data/change_data.rda") %>%
            party = if_else(party == "CC (AIC, CC-NC-PNC)" | party == "CC-PNC", "CC-PNC (AIC, CC-NC-PNC, CC)", party),
            change = if_else(party == "CC-PNC (AIC, CC-NC-PNC, CC)" & year == 2015, 1, change)) %>% 
     filter(!(party == "KMU" & country == "Estonia") &               # these are added back below
+               !(party == "RE 1990:(Independents)" & country == "Estonia") &
                !(party == "UDI (PR, PR-UDSR)" & country == "France") &
                !(str_detect(party, "AB 1979") & country == "Iceland") &
                !(party == "NPSI-DCA (PS)" & country == "Italy") &
@@ -35,11 +36,26 @@ change_data <- import("data/change_data.rda") %>%
                !(party == "SLD (PPR, PZPR, LiD, ZL)" & year == 2011 & change == 0) &
                !(party == "CDU (APU)") &
                !(party == "FRS" & year == 1980) &
-               !(country == "Portugal" & (year == 1979 | year==1980))) %>% 
+               !(country == "Cyprus" & year == 1976) &                    # Coalition not standardized
+               !(country == "Portugal" & (year == 1979 | year==1980)) &   # Coalition not standardized
+               !((country == "Poland" | country == "Slovakia") & year < 1948)
+           ) %>% 
     mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II")) %>% 
-    select(-prime_minister_last, -cabinet_party_last, -election_id, -enep1)
+    select(-prime_minister_last, -cabinet_party_last, -election_id, -enep1) 
 
-# Standardizing the coalition results in Portugal's 1979 & 1980 elections
+# Standardizing the coalition results in Cyprus's 1976 and Portugal's 1979 & 1980 elections
+cyprus1976 <- tibble(country = "Cyprus",
+                     party = c("AKEL", "DIKO (DP)", "KS-EDEK (EDEK, EDEK, SK-EDEK, KISOS)", "DISY (EK)"),
+                     name1 = c("AKEL", "DIKO", "KS-EDEK", "DISY"),
+                     name2 = c(NA, "DP", "EDEK", "EK"),
+                     name3 = c(NA, NA, "EDEK", NA),
+                     name4 = c(NA, NA, "SK-EDEK", NA),
+                     name5 = c(NA, NA, "KISOS", NA),
+                     election = "1976",
+                     vote_share = round(c(71.2*c(9/34, 21/34, 4/34), 27.6), 1),
+                     change = 0,
+                     year = 1976)
+
 portugal1979 <- tibble(country = "Portugal",
                        party = c("CDS-PP (CDS)", "PCP", "MDP", "PPM (PPM-MPT)", "PS", "PSD (PPD)", "UDP"),
                        name1 = c("CDS-PP", "PCP", "MDP", "PPM", "PS", "PSD", "UDP"),
@@ -173,7 +189,7 @@ old_change_data <- import("data/old_change_data.RData") %>%
     mutate(election = str_replace(as.character(year), "\\.1", "II"),
            year = floor(year))
     
-ncd <- bind_rows(change_data, old_change_data, portugal1979, portugal1980, portugalCDU) 
+ncd <- bind_rows(change_data, old_change_data, cyprus1976, portugal1979, portugal1980, portugalCDU) 
     
 # get ParlGov data on incumbent status
 last_cabinet <- read_csv("http://www.parlgov.org/static/data/development-cp1252/view_cabinet.csv",
@@ -469,7 +485,7 @@ new_change_data <- change2 %>%
     ungroup() %>% 
     select(-enep_omit, -other_share, -share_min, -enep_min) %>% 
     arrange(country, party, year) %>% 
-    filter(country %in% countries)
+    filter(country %in% countries & !str_detect(party, "^Ind"))
 
 save(new_change_data, file="data/new_change_data.rda")
 

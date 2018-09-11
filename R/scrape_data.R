@@ -225,38 +225,67 @@ change_data0 <- map_df(countries, function(country) {
     
     archive_votes <- map_df(archive_links, function(a_link) {
         tab0 <- read_html(a_link) %>%
-            html_nodes("td td div table:nth-child(3) td") %>%
-            html_text()
-        tab0[1] <- "percent"
-        no_yrs <- tab0 %>% str_subset("((19)|(20))\\d{2}") %>% length()
-        votes <- tab0 %>%
-            c("party", .) %>%
-            matrix(ncol = no_yrs + 2, byrow = TRUE) %>%
-            as_tibble() %>%
-            first_row_to_names() %>%
+            html_table(fill = TRUE) %>%
+            nth(5) %>% 
+            first_row_to_names() %>% 
+            rename(party = v1,
+                   percent = v2)
+        votes0 <- tab0 %>%
             filter(str_detect(percent, "%")) %>%
-            filter(!(str_detect(party, "Others") | str_detect(party, "Turnout") | str_detect(party, "Miscellaneous"))) %>%
-            select(-percent) %>%
-            group_by(party) %>% 
-            mutate(name_count = as.factor(party) %>% as.numeric() %>% cumsum()) %>%
-            ungroup() %>% 
-            mutate(party = if_else(name_count > 1,
-                                   paste0(party, name_count),
-                                   party)) %>% 
-            select(-name_count) %>% 
-            gather(key = election, value = vote_share, -party) %>%
-            arrange(party) %>%
-            filter(!str_detect(vote_share, "^[A-Z]")) %>% # omit election if party ran in coalition
-            mutate(vote_share = if_else(str_detect(vote_share, "\\d"), 
-                                        suppressWarnings(vote_share %>% 
-                                                             str_trim() %>%
-                                                             str_replace(",", ".") %>% 
-                                                             str_replace_all("[()*]", "") %>%
-                                                             as.numeric()),
-                                        0),
-                   party = str_replace(party, "(.*)\\r\\n\\W*(.*)", "\\1 \\2") %>% str_trim(),
-                   year = str_extract(election, "\\d{4}"))
-        return(votes)
+            filter(!(str_detect(party, "Others") | str_detect(party, "Turnout") | str_detect(party, "Minorities"))) %>% 
+            rename_at(vars(matches("\\d{4}")), funs(paste0("votes", .))) %>% 
+            select(-percent)
+        seats0 <- tab0 %>%
+            mutate(party = if_else(party == "", lag(party), party)) %>% 
+            filter(str_detect(percent, "S.")) %>%
+            filter(!(str_detect(party, "Others") | str_detect(party, "Total") | str_detect(party, "Minorities"))) %>% 
+            rename_at(vars(matches("\\d{4}")), funs(paste0("seats", .))) %>% 
+            select(-percent)
+        votes <- left_join(votes0, seats0, by = "party")
+        
+        years <- str_extract(names(votes %>% select(-party)), "\\d{4}") %>% unique()
+        
+        for(year in years) {
+            votes_year <- paste0("votes", year) %>% sym()
+            seats_year <- paste0("seats", year) %>% sym()
+            ally_names <- votes %>% pull(!!votes_year) %>% str_subset("[A-Z]") %>% unique()
+            if (length(ally_names > 0)) {
+                alliances <- map_df(ally_names, function(a_name) {
+                    votes %>% 
+                        filter(str_detect(party, a_name)) %>% 
+                        transmute(alliance_name = party,
+                                  alliance_seats = str_extract(!!seats_year, "\\d+") %>% as.numeric(),
+                                  alliance_votes = !!votes_year %>% 
+                                      str_trim() %>% 
+                                      str_replace(",", ".") %>% 
+                                      str_replace("%", "") %>% 
+                                      as.numeric(),
+                                  ally = a_name) %>% 
+                        filter(!is.na(alliance_votes))
+                })  
+                join_vars <- "ally" %>% set_names(rlang::quo_text(votes_year))
+                votes <- votes %>%
+                    left_join(alliances, by = join_vars) %>% 
+                    mutate(!!seats_year := as.numeric(str_extract(!!seats_year, "\\d+")),
+                           !!votes_year := if_else(!is.na(alliance_name), 
+                                                   round(alliance_votes * (!!seats_year/alliance_seats), 1),
+                                                   str_replace(!!votes_year, ",", ".") %>% as.numeric())) %>% 
+                    select(-alliance_name, -alliance_seats, -alliance_votes) %>% 
+                    left_join(alliances, by = c("party" = "alliance_name")) %>% 
+                    mutate(!!votes_year := if_else(!is.na(alliance_votes), NA_real_, !!votes_year),
+                           !!seats_year := if_else(!is.na(alliance_seats), NA_real_, !!seats_year)) %>% 
+                    select(-alliance_seats, -alliance_votes, -ally)
+            } else {
+                votes <- votes %>%
+                    mutate(!!seats_year := as.numeric(!!seats_year),
+                           !!votes_year := as.numeric(str_replace(!!votes_year, ",", ".")))
+            }
+        }
+        votes1 <- votes %>%
+            select(-matches("seat")) %>% 
+            gather(key = "year", value = "vote", -party) %>% 
+            mutate(year = str_extract(year, "\\d{4}") %>% as.numeric())
+        return(votes1)
     })
     
     archive_votes <- archive_votes %>% 

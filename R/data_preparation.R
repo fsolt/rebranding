@@ -3,7 +3,11 @@ library(rvest)
 library(rio)
 
 change_data <- import("data/change_data.rda") %>% 
-    filter(!(party == "S" & country == "Denmark" & year == 2011)) %>% # doubled obs
+    filter(!(party == "S" & country == "Denmark" & year == 2011) & # get rid of doubled obs
+               !(party == "NSI" & country == "Slovenia" & year == 2011.1) &
+               !(party == "LA (NA)" & country == "Denmark" & year == 2011.1) &
+               !(party == "SLD (PPR, PZPR, LiD, ZL)" & country == "Poland" & year == 2011.1) &
+               !(party == "FIDESZ" & country == "Hungary" & year == 2010.1)) %>% 
     mutate(party = if_else(party == "OPEN", "OPEN VLD (VLD, PVV)", party), # Belgium
            change = if_else(party == "OPEN VLD (VLD, PVV)" & (year == 1995 | year == 2003), 1, change),
            party = if_else(party == "SD" & country == "Denmark", "S", party),
@@ -14,6 +18,7 @@ change_data <- import("data/change_data.rda") %>%
            name3 = if_else(party == "UDI (PR+NC, NC)", "NC", name3),
            party = if_else(party == "DIE", "DIE LINKE (PDS)", party),
            change = if_else(party == "DIE LINKE (PDS)" & year == 2005, 1, change),
+           vote_share = if_else(party == "FIDESZ" & year == 2010, 45.5, vote_share),
            party = if_else(party == "BF" & year == 1987 & country == "Iceland", "Bf-87", party),
            name1 = if_else(party == "Bf-87" & year == 1987 & country == "Iceland", "Bf-87", name1),
            party = if_else(party == "SF" & country == "Iceland", "SFVM", party),
@@ -23,6 +28,7 @@ change_data <- import("data/change_data.rda") %>%
            party = if_else(str_detect(party, "RETE 1994-2001,"), "RETE", party),
            change = if_else(party == "AP (DNA)" & year == 2013, 1, change),
            change = if_else(party == "SZ (SZS)" & year == 1992, 1, change),
+           change = if_else(party == "NSI" & year == 2011, 0, change),
            party = if_else(party == "CC (AIC, CC-NC-PNC)" | party == "CC-PNC", "CC-PNC (AIC, CC-NC-PNC, CC)", party),
            change = if_else(party == "CC-PNC (AIC, CC-NC-PNC, CC)" & year == 2015, 1, change)) %>% 
     filter(!(party == "KMU" & country == "Estonia") &               # these are added back below
@@ -39,8 +45,13 @@ change_data <- import("data/change_data.rda") %>%
                !(party == "FRS" & year == 1980) &
                !(country == "Cyprus" & year == 1976) &                    # Coalition not standardized
                !(country == "Portugal" & (year == 1979 | year==1980)) &   # Coalition not standardized
-               !((country == "Poland" | country == "Slovakia") & year < 1948)
-           ) %>% 
+               !((country == "Bulgaria" | country == "Hungary" | country == "Poland" |
+                      country == "Romania" | country == "Slovakia") & year < 1948) &
+               !(country == "Cyprus" & year < 1970) &
+               !(country == "Greece" & year < 1974) &
+               !(country == "Latvia" & year < 1993) &
+               !(country == "Malta" & year < 1947) &
+               !(country == "Romania")) %>% 
     mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II")) %>% 
     select(-prime_minister_last, -cabinet_party_last, -election_id, -enep1) 
 
@@ -93,6 +104,8 @@ portugalCDU <- tibble(country = "Portugal",
                                            8.3*c(15/17, 2/17)  #2015
                                            ), 1),
                       change = 0)
+
+romania <- import("data/romania.rda")
         
 old_change_data <- import("data/old_change_data.RData") %>% 
     mutate_if(is.factor, as.character) %>% 
@@ -115,8 +128,6 @@ old_change_data <- import("data/old_change_data.RData") %>%
                (party == "HSLS (HSLS-DC)" & year == 2000) |
                (party == "HSS (HSS-HSLS)" & (year == 1995 | year == 2000)) |
                (party == "IDS (DA-IDS-RDS)" & (year == 1995 | year == 2000 | year == 2003)) |
-               party == "AKEL" |
-               (party == "DP" & country == "Cyprus") |
                party == "EKES" |
                (party == "SP" & country == "Denmark") |
                party == "EVP (EKP, VV, O, ESDTP)" |
@@ -136,15 +147,12 @@ old_change_data <- import("data/old_change_data.RData") %>%
                party == "REP" |
                party == "SSW" |
                (party == "ZENTRUM" & vote_share == 0) |
-               (party == "EDA (PAME)" & vote_share == 0) |
-               party == "EPEK (PADE)" |
-               party == "KF" |
+               (party == "EDA (PAME)" & vote_share == 0 & year >= 1974) |
+               party == "EPEK (PADE)" & year >= 1974 |
+               party == "KF" & year >= 1974 |
                (party == "KKE" & vote_share == 0) |
                party == "MDF" |
                party == "MKMP (MSZMP, MP)" |
-               party == "MRP" |
-               party == "MSZDP (SZDP)" |
-               party == "PDP" |
                party == "NLP" |
                (party == "SF" & country == "Ireland" & vote_share == 0) |
                party == "DE" & year == 2004 |
@@ -158,7 +166,6 @@ old_change_data <- import("data/old_change_data.RData") %>%
                party == "VERDI (LV)" |
                party == "KDS (LKDS)" |
                party == "LPP/LC" |
-               (party == "LSP (LKP)" & vote_share == 0) |
                party == "PCTVL (LS)" |
                (party == "VL" & country == "Latvia") |
                party == "AWPL (LLS)" |
@@ -174,7 +181,7 @@ old_change_data <- import("data/old_change_data.RData") %>%
                (party == "CD" & country == "Netherlands") |
                party == "NKP" |
                party == "AWSP (AWS)" |
-               party == "ChD-SP (ChD)" |
+               party == "ChD-SP (ChD)" & year >= 1989 |
                party == "PPChD (PChD)" |
                party == "ROP (RP)" |
                country == "Romania" |
@@ -190,7 +197,7 @@ old_change_data <- import("data/old_change_data.RData") %>%
     mutate(election = str_replace(as.character(year), "\\.1", "II"),
            year = floor(year))
     
-ncd <- bind_rows(change_data, old_change_data, cyprus1976, portugal1979, portugal1980, portugalCDU) 
+ncd <- bind_rows(change_data, old_change_data, cyprus1976, portugal1979, portugal1980, portugalCDU, romania) 
 
 # EU + 3 countries only
 countries <- read_html("https://en.wikipedia.org/wiki/Member_state_of_the_European_Union") %>%
@@ -451,6 +458,8 @@ change <- ncd %>%
                    select(country, party, year, prime_minister_last, cabinet_party_last, election_id),
                by = c("country", "name1" = "party", "year"))
 
+max_names <- names(ncd) %>% str_subset("name") %>% length()
+
 for (i in 2:max_names) {
     temp <- inner_join(ncd %>%
                            mutate_at(vars(ends_with(paste(i))), funs(party_name = identity)),
@@ -475,7 +484,7 @@ change2 <- ncd %>%
 
 # add effective number of electoral parties using least component approach (see Taagepera 1997, 147-148)
 new_change_data <- change2 %>% 
-    group_by(country, year) %>% 
+    group_by(country, election) %>% 
     mutate(election_id = mean(election_id, na.rm = TRUE),
            enep_omit = 1/sum((vote_share/100)^2),
            other_share = 1 - sum((vote_share/100)),

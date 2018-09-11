@@ -184,7 +184,6 @@ old_change_data <- import("data/old_change_data.RData") %>%
                party == "ChD-SP (ChD)" & year >= 1989 |
                party == "PPChD (PChD)" |
                party == "ROP (RP)" |
-               country == "Romania" |
                party == "KDH" |
                party == "MOS" |
                party == "PSNS" |

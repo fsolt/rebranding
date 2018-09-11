@@ -206,9 +206,6 @@ countries <- read_html("https://en.wikipedia.org/wiki/Member_state_of_the_Europe
     pull(`Country name`) %>% 
     str_trim() %>% 
     str_replace("\\[.*\\]", "") %>% # omit footnotes
-    # str_replace(" ", "") %>%        # collapse words
-    # str_replace("Republic", "ia") %>% 
-    # tolower() %>% 
     c(., "Iceland", "Norway", "Switzerland")
     
 # get ParlGov data on incumbent status

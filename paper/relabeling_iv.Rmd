@@ -1,13 +1,27 @@
 ---
-title: "Consequences of Party Re-labeling"
-author: "Mi-son Kim and Frederick Solt"
-date: "11/22/2017"
-output:
-  pdf_document: 
+output: 
+  pdf_document:
+    citation_package: natbib
     keep_tex: true
-  html_document: default
-bibliography: /Users/fredsolt/Library/texmf/bibtex/bib/FSLibrary.bib
-biblio-style: american-political-science-association2
+    fig_caption: true
+    latex_engine: pdflatex
+    template: svm-latex-ms2.tex
+title: "Consequences of Party Re-labeling"
+thanks: "The paper's revision history and the materials needed to reproduce its analyses can be found [on Github here](http://github.com/fsolt/relabeling). Corresponding author: [frederick-solt@uiowa.edu](mailto:frederick-solt@uiowa.edu). Current version: `r format(Sys.time(), '%B %d, %Y')`."
+author:
+- name: Mi-son Kim
+  affiliation: University of Texas, Rio Grande Valley
+- name: Frederick Solt
+  affiliation: University of Iowa 
+abstract: " "
+# keywords: "rebranding, behavior"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+fontsize: 11pt
+spacing: single
+bibliography: \dummy{`r file.path(getwd(), 'relabeling')`}
+biblio-style: apsr
+citecolor: black
+endnote: no
 ---
 
 ```{r setup, include=FALSE}
@@ -17,8 +31,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r plot_setup, include=FALSE}
 library(tidyverse)
+library(here)
 
-load("../data/new_change_data.rda") # run prepare_data.R to generate this file
+load(here("/data/new_change_data.rda")) # run prepare_data.R to generate this file
 change_data <- new_change_data
 
 change_party <- change_data %>%
@@ -171,7 +186,8 @@ change_data2 <- change_data1 %>%
     mutate(cparty = paste(country, party) %>% str_replace_all(" ", "_") %>% tolower(),
            vote_gain_abs = vote - prev_vote,
            vote_gain_rel = if_else(prev_vote==0, 1, vote/prev_vote),
-           log_party_age = log1p(party_age)) %>% 
+           log_party_age = log1p(party_age),
+           elec_shock = elec_shock) %>% 
     ungroup() %>% 
     mutate(election = as.numeric(as.factor(paste(country, year)))) %>% 
     select(country, year, party, cparty, election, election_pcy,
@@ -393,85 +409,7 @@ fd.plot
 ```
 
 
-```{r}
-library(ebal)
-
-get_ebal_weights <- function(df, treatment, exclude, targets = c(1, 2, 3)) {
-    vars_to_keep <- df %>% 
-        select(-one_of(c(exclude, treatment))) %>% 
-        names()
-    X <- df %>% select(vars_to_keep)
-    if (targets == 3) {
-        X1 <- matrixmaker(as.matrix(X)) %>% 
-            as.data.frame() %>% 
-            select(-one_of(names(.)[duplicated(t(.)) %>% which()]))
-    } else if (targets == 2) {
-        X1 <- getsquares(X)
-     } else {
-        X1 <- X
-    }
-    c_ebal <- ebalance(Treatment = df[[treatment]], X = X1)
-    df <- as.data.frame(df)
-    df$wt <- 1
-    df$wt[df[[treatment]]==0] <- c_ebal$w
-    
-    return(df$wt)
-}
-
-to_exclude <- c("vote", "vote_gain_abs", "vote_gain_rel", "country", "year", "election", "election_pcy", "party", "cparty")
-
-change_data3 <- change_data2 %>% 
-    mutate(wt = get_ebal_weights(., treatment = "change", exclude = to_exclude, targets = 3))
-
-to_exclude <- setdiff(names(change_data2), c("prev_vote", "change", "cabinet_party_last"))
-
-change_data4 <- change_data2 %>% 
-    mutate(wt = get_ebal_weights(., treatment = "change", exclude = to_exclude, targets = 3))
-```
 
 
-```{r}
-m1 <- lme4::lmer(data = change_data3, vote_gain_rel ~ change +
-                     log_party_age + 
-                     r_avg_vote + 
-                     cabinet_party_last + 
-                     enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|election) + (1|country),
-                 weights = wt)
-
-summary(m1)
-
-# without ebal matching weights: effect is smaller, p < .1
-lme4::lmer(data = change_data3, vote_gain_rel ~ change +
-                     log_party_age + 
-                     r_avg_vote + 
-                     cabinet_party_last + 
-                     enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|election) + (1|country)) %>% summary()
-
-m2 <- lme4::lmer(data = change_data3, vote_gain_abs ~ change +
-                     log_party_age + 
-                     r_avg_vote + 
-                     cabinet_party_last + 
-                     enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|election) + (1|country),
-                 weights = wt)
-
-summary(m2)
-
-# without ebal matching weights, effect is much smaller (and p > .05)
-lme4::lmer(data = change_data3, vote_gain_abs ~ change +
-                     log_party_age + 
-                     r_avg_vote + 
-                     cabinet_party_last + 
-                     enep_lag + name_exp + elec_shock + pedersen_lag +
-                     (1|cparty) + (1|election) + (1|country)) %>% summary()
-
-m3 <- lme4::lmer(data = change_data4,
-                 vote ~ prev_vote + change +
-                     cabinet_party_last +
-                     (1|cparty) + (1|election) + (1|country),
-                 weights = wt) %>% summary()
-```
 
 # References

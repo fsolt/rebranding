@@ -37,19 +37,19 @@ load(here("/data/new_change_data.rda")) # run prepare_data.R to generate this fi
 change_data <- new_change_data
 
 change_party <- change_data %>%
-    group_by(country, party) %>% 
-    summarize(change_sum = sum(change)) %>%
-    mutate(change_total = if_else(change_sum >=3, "3 or more", as.character(change_sum)),
-           changed_ever = if_else(change_sum > 0, 1, 0))
-    
+  group_by(country, party) %>% 
+  summarize(change_sum = sum(change)) %>%
+  mutate(change_total = if_else(change_sum >=3, "3 or more", as.character(change_sum)),
+         changed_ever = if_else(change_sum > 0, 1, 0))
+
 change_election <- change_data %>%
-    group_by(country, year) %>% 
-    summarize(change_sum = sum(change)) %>%
-    mutate(change_total = if_else(change_sum >=3, "3 or more", as.character(change_sum)))
+  group_by(country, year) %>% 
+  summarize(change_sum = sum(change)) %>%
+  mutate(change_total = if_else(change_sum >=3, "3 or more", as.character(change_sum)))
 
 change_country <- change_party %>%
-    group_by(country) %>% 
-    summarise(changed_ever = mean(changed_ever))
+  group_by(country) %>% 
+  summarise(changed_ever = mean(changed_ever))
 ```
 
 We identified Wolfram Nordsieck's [-@Nordsieck2014] \href{http://www.parties-and-elections.eu}{Parties and Elections in Europe} as the best available cross-national source on parties' names.  Norsieck has drawn on a host of country-specific resources to carefully identify the parties that contested national elections across the continent, the names they ran on, and their vote shares.  One disadvantage of this source, however, is that the information it contains is spread across many separate webpages and the information on party names appears only as blocks of text.  Nevertheless, taking advantage of the webscraping and text-handling capabilities of the `R` packages `XML` [@Lang2015] and `stringr` [@Wickham2015], we were able to collect and transform the data into a format suitable for analysis.  Our resulting dataset encompasses `r dim(change_party)[1]` parties in `r dim(change_election)[1]` different elections held in 31 European democracies (all 28 current EU members, plus Iceland, Norway, and Switzerland), for a total of `r dim(change_data)[1]` party-election observations.  Our variable of interest, relabeling, is dichotomous, taking on a value of one when a preexisting party runs with a different name than it used in the previous election and zero otherwise.^[As the example of the French Gaullists given above suggests, it may be the case that not all name changes are in fact equal: sometimes parties retain one or more words---or more rarely, the party acronym---as hints of their previous label to cue voters.  We leave exploration of these `partial' name changes for future research.]
@@ -59,63 +59,63 @@ library(scales)
 library(ggplot2)
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-    require(grid)
+  require(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
     
-    # Make a list from the ... arguments and plotlist
-    plots <- c(list(...), plotlist)
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
     
-    numPlots = length(plots)
-    
-    # If layout is NULL, then use 'cols' to determine layout
-    if (is.null(layout)) {
-        # Make the panel
-        # ncol: Number of columns of plots
-        # nrow: Number of rows needed, calculated from # of cols
-        layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                         ncol = cols, nrow = ceiling(numPlots/cols))
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
     }
-    
-    if (numPlots==1) {
-        print(plots[[1]])
-        
-    } else {
-        # Set up the page
-        grid.newpage()
-        pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-        
-        # Make each plot, in the correct location
-        for (i in 1:numPlots) {
-            # Get the i,j matrix positions of the regions that contain this subplot
-            matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-            
-            print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                            layout.pos.col = matchidx$col))
-        }
-    }
+  }
 }
 
 sum_plot_party <- ggplot(change_party, aes(x = factor(change_total))) +  
-    geom_bar(aes(y = (..count..)/sum(..count..))) + 
-    scale_y_continuous(labels = scales::percent_format(), limits=c(0,.73)) +
-    theme_bw() + coord_flip() +
-    ylab("a. Relabelings per Party") + 
-    theme(axis.title.y = element_blank()) 
+  geom_bar(aes(y = (..count..)/sum(..count..))) + 
+  scale_y_continuous(labels = scales::percent_format(), limits=c(0,.73)) +
+  theme_bw() + coord_flip() +
+  ylab("a. Relabelings per Party") + 
+  theme(axis.title.y = element_blank()) 
 
 sum_plot_election <- ggplot(change_election, aes(x = factor(change_total))) +  
-    geom_bar(aes(y = (..count..)/sum(..count..))) + 
-    scale_y_continuous(labels = scales::percent_format(), limits=c(0,.73)) +
-    theme_bw() + coord_flip() + 
-    ylab("b. Relabelings per Election") + 
-    theme(axis.title.y = element_blank())
+  geom_bar(aes(y = (..count..)/sum(..count..))) + 
+  scale_y_continuous(labels = scales::percent_format(), limits=c(0,.73)) +
+  theme_bw() + coord_flip() + 
+  ylab("b. Relabelings per Election") + 
+  theme(axis.title.y = element_blank())
 
 sum_plot_country <- ggplot(change_country, aes(x = changed_ever, 
-    y = reorder(country, changed_ever)) ) + 
-    geom_point() + theme_bw() +
-    xlab("c. Relabeled Parties") + 
-    scale_x_continuous(labels = scales::percent_format()) +
-    theme(axis.title.y = element_blank())  +
-    expand_limits(x = 0)
- 
+                                               y = reorder(country, changed_ever)) ) + 
+  geom_point() + theme_bw() +
+  xlab("c. Relabeled Parties") + 
+  scale_x_continuous(labels = scales::percent_format()) +
+  theme(axis.title.y = element_blank())  +
+  expand_limits(x = 0)
+
 ```
 
 `r round((1 - as.vector(table(change_party$change_total)/length(change_party$change_total))[1]) * 100)`\% of parties have relabeled themselves at least once, and more than `r round( (as.vector(table(change_party$change_total)/length(change_party$change_total))[4]) * 100)`\% have done so three or more times.
@@ -142,60 +142,60 @@ multiplot(sum_plot_party, sum_plot_election, sum_plot_country,
 ```{r gen_controls, include=FALSE}
 
 change_data1 <- change_data %>%
-    group_by(country) %>% 
-    mutate(first_cy = min(year),
-           old_dem = as.numeric(country %in% c("Denmark", "Belgium", "Finland", "Ireland", "Luxembourg", "Netherlands", "Sweden", "United Kingdom", "Iceland", "Norway", "Switzerland"))) %>% # No authoritarian interlude of more than 10 years
-    ungroup() %>% 
-    arrange(country, party, year) %>% 
-    group_by(country, party) %>% 
-    mutate(first_pcy = min(year),
-           election_pcy = as.numeric(factor(year)),
-           r_avg_vote = if_else(election_pcy > 1, round((cumsum(vote_share)-vote_share)/(election_pcy - 1), 1), NA_real_),
-           r_avg_vote = if_else((election_pcy == 1 & (first_pcy!=first_cy | old_dem == 0)), 0, r_avg_vote),
-           prev_vote = if_else(year == first_pcy, 0, lag(vote_share)),
-           prev_vote_rel = prev_vote - r_avg_vote,
-           prev_vote_rel_perc = prev_vote_rel/r_avg_vote,
-           prev_vote_rel_perc = if_else(r_avg_vote==0 & !is.na(prev_vote_rel), 0, prev_vote_rel_perc), # Set equal to 0 if new party
-           elec_shock = -prev_vote_rel_perc,
-           vote_diff = if_else(!is.na(prev_vote), abs(vote_share - prev_vote), vote_share),
-           dem_age = year - first_cy,
-           party_age = year - first_pcy, # years since first contested (postwar) election
-           count = lag(cumsum(change)),
-           count = if_else(is.na(count), 0, count)) %>% 
-    group_by(country, party, count) %>% 
-    mutate(name_exp = as.numeric(as.factor(year)) - 1, # brand exposure: number of previous elections name was used
-           name_age = round(year) - round(min(year))) %>% 
-    group_by(country) %>% 
-    mutate(enep_lag = lag(enep1)) %>% 
-    ungroup()
+  group_by(country) %>% 
+  mutate(first_cy = min(year),
+         old_dem = as.numeric(country %in% c("Denmark", "Belgium", "Finland", "Ireland", "Luxembourg", "Netherlands", "Sweden", "United Kingdom", "Iceland", "Norway", "Switzerland"))) %>% # No authoritarian interlude of more than 10 years
+  ungroup() %>% 
+  arrange(country, party, year) %>% 
+  group_by(country, party) %>% 
+  mutate(first_pcy = min(year),
+         election_pcy = as.numeric(factor(year)),
+         r_avg_vote = if_else(election_pcy > 1, round((cumsum(vote_share)-vote_share)/(election_pcy - 1), 1), NA_real_),
+         r_avg_vote = if_else((election_pcy == 1 & (first_pcy!=first_cy | old_dem == 0)), 0, r_avg_vote),
+         prev_vote = if_else(year == first_pcy, 0, lag(vote_share)),
+         prev_vote_rel = prev_vote - r_avg_vote,
+         prev_vote_rel_perc = prev_vote_rel/r_avg_vote,
+         prev_vote_rel_perc = if_else(r_avg_vote==0 & !is.na(prev_vote_rel), 0, prev_vote_rel_perc), # Set equal to 0 if new party
+         elec_shock = -prev_vote_rel_perc,
+         vote_diff = if_else(!is.na(prev_vote), abs(vote_share - prev_vote), vote_share),
+         dem_age = year - first_cy,
+         party_age = year - first_pcy, # years since first contested (postwar) election
+         count = lag(cumsum(change)),
+         count = if_else(is.na(count), 0, count)) %>% 
+  group_by(country, party, count) %>% 
+  mutate(name_exp = as.numeric(as.factor(year)) - 1, # brand exposure: number of previous elections name was used
+         name_age = round(year) - round(min(year))) %>% 
+  group_by(country) %>% 
+  mutate(enep_lag = lag(enep1)) %>% 
+  ungroup()
 
 # Pedersen index of volatility
 pedersen <- change_data1 %>% 
-    group_by(country, year) %>% 
-    summarize(pedersen = sum(vote_diff, na.rm = TRUE)/2) %>% 
-    ungroup() %>% 
-    group_by(country) %>% 
-    mutate(pedersen_lag = lag(pedersen)) %>% 
-    ungroup()
+  group_by(country, year) %>% 
+  summarize(pedersen = sum(vote_diff, na.rm = TRUE)/2) %>% 
+  ungroup() %>% 
+  group_by(country) %>% 
+  mutate(pedersen_lag = lag(pedersen)) %>% 
+  ungroup()
 
 change_data2 <- change_data1 %>% 
-    left_join(pedersen, by = c("country", "year")) %>% 
-    rename(vote = vote_share) %>% 
-    group_by(country, party) %>%
-    arrange(country, party, year) %>% 
-    mutate(cparty = paste(country, party) %>% str_replace_all(" ", "_") %>% tolower(),
-           vote_gain_abs = vote - prev_vote,
-           vote_gain_rel = if_else(prev_vote==0, 1, vote/prev_vote),
-           log_party_age = log1p(party_age),
-           elec_shock = elec_shock) %>% 
-    ungroup() %>% 
-    mutate(election = as.numeric(as.factor(paste(country, year)))) %>% 
-    select(country, year, party, cparty, election, election_pcy,
-           change, log_party_age, r_avg_vote, cabinet_party_last, 
-           enep_lag, 
-           name_exp, elec_shock, pedersen_lag, 
-           vote, prev_vote, vote_gain_abs, vote_gain_rel) %>% 
-    filter(complete.cases(.)) 
+  left_join(pedersen, by = c("country", "year")) %>% 
+  rename(vote = vote_share) %>% 
+  group_by(country, party) %>%
+  arrange(country, party, year) %>% 
+  mutate(cparty = paste(country, party) %>% str_replace_all(" ", "_") %>% tolower(),
+         vote_gain_abs = vote - prev_vote,
+         vote_gain_rel = if_else(prev_vote==0, 1, vote/prev_vote),
+         log_party_age = log1p(party_age),
+         elec_shock = elec_shock) %>% 
+  ungroup() %>% 
+  mutate(election = as.numeric(as.factor(paste(country, year)))) %>% 
+  select(country, year, party, cparty, election, election_pcy,
+         change, log_party_age, r_avg_vote, cabinet_party_last, 
+         enep_lag, 
+         name_exp, elec_shock, pedersen_lag, 
+         vote, prev_vote, vote_gain_abs, vote_gain_rel) %>% 
+  filter(complete.cases(.)) 
 ```
 
 
@@ -210,206 +210,322 @@ base_model <- "log_party_age +
 # base model
 t1m0 <- glmer(as.formula(paste("change ~", base_model, " +
                 (1|cparty) + (1|election) + (1|country)")),
-             data = change_data2, family = "binomial", nAGQ = 0)
+              data = change_data2, family = "binomial", nAGQ = 0)
 
 # brands
 t1m1 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp +
                 (1|cparty) + (1|election) + (1|country)")),
-             data = change_data2, family = "binomial", nAGQ = 0)
+              data = change_data2, family = "binomial", nAGQ = 0)
 
 # shocks
 t1m2 <- glmer(as.formula(paste("change ~", base_model, "+ elec_shock +
                 (1|cparty) + (1|election) + (1|country)")),
-             data = change_data2, family = "binomial", nAGQ = 0)
+              data = change_data2, family = "binomial", nAGQ = 0)
 
 # volatility 
 t1m3 <- glmer(as.formula(paste("change ~", base_model, "+ pedersen_lag +
                 (1|cparty) + (1|election) + (1|country)")),
-             data = change_data2, family = "binomial", nAGQ = 0)
+              data = change_data2, family = "binomial", nAGQ = 0)
 
 # all three 
 t1m4 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp + elec_shock + pedersen_lag +
                 (1|cparty) + (1|election) + (1|country)")),
-             data = change_data2, family = "binomial", nAGQ = 0)
+              data = change_data2, family = "binomial", nAGQ = 0)
 ```
 
-```{r replication_table, echo=FALSE}
+```{r replication_table, results = 'asis', echo=FALSE, message=FALSE, warning=FALSE}
 library(texreg)
 
 format_for_texreg <- function(model = NULL) {
-    model.res <- texreg::extract(model, include.aic=F, include.bic=F, include.deviance=F, naive=T)
-    model.res@gof <- model.res@gof[-9]
-    model.res@gof.names <- model.res@gof.names[-9]
-    model.res@gof.decimal <- model.res@gof.decimal[-9]
-    return(model.res)
+  model.res <- texreg::extract(model, include.aic=F, include.bic=F, include.deviance=F, naive=T)
+  model.res@gof <- model.res@gof[-9]
+  model.res@gof.names <- model.res@gof.names[-9]
+  model.res@gof.decimal <- model.res@gof.decimal[-9]
+  return(model.res)
 }
 
 models.t1 <- list()
 for (i in 1:4) {
-    models.t1[i] <- format_for_texreg(get(paste0("t1m", i)))
+  models.t1[i] <- format_for_texreg(get(paste0("t1m", i)))
 }
 
 vars <- c("Party Age, Logged", "Party Size", "Incumbent Government", "Electoral Pluralism",  "Brand Exposure", "Electoral Shock", "Party System Weakness")
- 
+
 
 # Three Theories
 texreg::texreg(l=models.t1, label="T:models.t1", 
-       caption="Predicting Party Relabeling, Cross-Classified Hierarchical Models",
-       stars = c(0.001, 0.01, 0.05, 0.1), symbol="\\dagger",
-       caption.above=T, 
-       custom.coef.names=c("Intercept", vars),  
-       custom.gof.names = c(NA, "Party-Elections", "Parties", "Elections", "Countries", "Variance: Parties", "Variance: Elections", "Variance: Countries"),
-       reorder.coef = c(6:8, 2:5, 1)
+               caption="Predicting Party Relabeling, Cross-Classified Hierarchical Models",
+               stars = c(0.001, 0.01, 0.05, 0.1), symbol="\\dagger",
+               caption.above=T, 
+               custom.coef.names=c("Intercept", vars),  
+               custom.gof.names = c(NA, "Party-Elections", "Parties", "Elections", "Countries", "Variance: Parties", "Variance: Elections", "Variance: Countries"),
+               reorder.coef = c(6:8, 2:5, 1)
 )
 ```
 
 
 ```{r replication_plot, echo=FALSE} 
 sims.glmer <- function(mod = NULL, n = 10000, seed = 324) {
-    # H/T http://www.quantumforest.com/2011/10/simulating-data-following-a-given-covariance-structure/
-    varcov <- matrix(vcov(mod)@x, nrow = vcov(mod)@Dim[1])
-    betas <- fixef(mod)
-    se <- diag(chol(diag(diag(varcov), length(diag(varcov)))))
-    
-    L <- chol(varcov)
-    n.vars <- dim(L)[1]
-    
-    set.seed(seed)
-    sims <- t(t(L) %*% matrix(rnorm(n.vars*n), nrow=n.vars, ncol=n))
-    
-    for (v in 1:ncol(sims)) {
-        sims[,v] <- sims[,v] + as.numeric(betas[v])
-    }
-    
-    sims <- as.data.frame(sims)
-    names(sims) <- names(betas)
-    names(sims)[1] <- "constant"
-    return(sims)
+  # H/T http://www.quantumforest.com/2011/10/simulating-data-following-a-given-covariance-structure/
+  varcov <- matrix(vcov(mod)@x, nrow = vcov(mod)@Dim[1])
+  betas <- fixef(mod)
+  se <- diag(chol(diag(diag(varcov), length(diag(varcov)))))
+  
+  L <- chol(varcov)
+  n.vars <- dim(L)[1]
+  
+  set.seed(seed)
+  sims <- t(t(L) %*% matrix(rnorm(n.vars*n), nrow=n.vars, ncol=n))
+  
+  for (v in 1:ncol(sims)) {
+    sims[,v] <- sims[,v] + as.numeric(betas[v])
+  }
+  
+  sims <- as.data.frame(sims)
+  names(sims) <- names(betas)
+  names(sims)[1] <- "constant"
+  return(sims)
 }
 
 # glmer.logit.fd, which calculates first differences when all other variables are at their means, is used only for comparison to glmer.logit.fd2, which uses the sample mean of the DV as the baseline instead to compensate for the underprediction that occurs when the DV is relatively rare
 
 glmer.logit.fd <- function(mod = NULL, sdX2 = FALSE, use.mode = FALSE, ci = .95) {
-    mod.sims <- sims.glmer(get(mod))
-    mod <- get(mod)
-    
-    df <- cbind( constant = 1, mod@frame[, 2:(length(mod@frame) - length(mod@cnms))])
-    vars.mean <- data.frame(t(colMeans(df)))
-    vars <- names(df)
-    if (use.mode == TRUE) {
-        for(i in seq(length(vars))) {
-            tab <- table(df[, vars[i]])
-            if (length(tab) == 2) {
-                vars.mean[i] <- as.numeric(names(tab[which(tab == max(tab))]))
-            }
-        }
-    }
-    fd <- data.frame(mean = t(vars.mean), min = NA, max = NA, fd = NA, fd.lb = NA, fd.ub = NA)
+  mod.sims <- sims.glmer(get(mod))
+  mod <- get(mod)
+  
+  df <- cbind( constant = 1, mod@frame[, 2:(length(mod@frame) - length(mod@cnms))])
+  vars.mean <- data.frame(t(colMeans(df)))
+  vars <- names(df)
+  if (use.mode == TRUE) {
     for(i in seq(length(vars))) {
-        fake.data <- data.frame(vars.mean[, !names(vars.mean) %in% vars[i]], 
-                                x = c(min(df[vars[i]]), max(df[vars[i]])))
-        fd[i, "min"] <- min(df[vars[i]])
-        fd[i, "max"] <- max(df[vars[i]])            
-        if (sdX2 == TRUE & length(table(df[, vars[i]])) > 2) {
-            fake.data$x <- c(mean(df[, vars[i]]) - sd(df[, vars[i]]), 
-                             mean(df[, vars[i]]) + sd(df[, vars[i]]))
-            fd[i, "min"] <- mean(df[, vars[i]]) - sd(df[, vars[i]])
-            fd[i, "max"] <- mean(df[, vars[i]]) + sd(df[, vars[i]])  
-        }
-        names(fake.data)[length(names(fake.data))] <- vars[i]
-        sims.t <- mod.sims[c(vars[!vars %in% vars[i]], vars[i])]
-        t <- plogis(data.matrix(fake.data) %*% t(data.matrix(sims.t)))
-        diff <- t[2,] - t[1,]
-        
-        fd[i, 4] <- mean(diff)*100
-        fd[i, 5:6] <- quantile(diff, probs = c(0.025, 0.975))*100
+      tab <- table(df[, vars[i]])
+      if (length(tab) == 2) {
+        vars.mean[i] <- as.numeric(names(tab[which(tab == max(tab))]))
+      }
     }
-    return(fd)
+  }
+  fd <- data.frame(mean = t(vars.mean), min = NA, max = NA, fd = NA, fd.lb = NA, fd.ub = NA)
+  for(i in seq(length(vars))) {
+    fake.data <- data.frame(vars.mean[, !names(vars.mean) %in% vars[i]], 
+                            x = c(min(df[vars[i]]), max(df[vars[i]])))
+    fd[i, "min"] <- min(df[vars[i]])
+    fd[i, "max"] <- max(df[vars[i]])            
+    if (sdX2 == TRUE & length(table(df[, vars[i]])) > 2) {
+      fake.data$x <- c(mean(df[, vars[i]]) - sd(df[, vars[i]]), 
+                       mean(df[, vars[i]]) + sd(df[, vars[i]]))
+      fd[i, "min"] <- mean(df[, vars[i]]) - sd(df[, vars[i]])
+      fd[i, "max"] <- mean(df[, vars[i]]) + sd(df[, vars[i]])  
+    }
+    names(fake.data)[length(names(fake.data))] <- vars[i]
+    sims.t <- mod.sims[c(vars[!vars %in% vars[i]], vars[i])]
+    t <- plogis(data.matrix(fake.data) %*% t(data.matrix(sims.t)))
+    diff <- t[2,] - t[1,]
+    
+    fd[i, 4] <- mean(diff)*100
+    fd[i, 5:6] <- quantile(diff, probs = c(0.025, 0.975))*100
+  }
+  return(fd)
 }
 
 glmer.logit.fd2 <- function(model = NULL, sdX2 = FALSE, use.mode = FALSE, ci = .95) {
-    mod.sims <- sims.glmer(get(model))
-    mod <- get(model)
-    
-    df <- cbind( constant = 1, mod@frame[, 2:(length(mod@frame) - length(mod@cnms))])
-    vars.mean <- data.frame(t(colMeans(df)))
-    vars <- names(df)
-    if (use.mode == TRUE) {
-        for(i in seq(length(vars))) {
-            tab <- table(df[, vars[i]])
-            if (length(tab) == 2) {
-                vars.mean[i] <- as.numeric(names(tab[which(tab == max(tab))]))
-            }
-        }
-    }
-    fd <- data.frame(mean = t(vars.mean), min = NA, max = NA, fd = NA, fd.lb = NA, fd.ub = NA)
+  mod.sims <- sims.glmer(get(model))
+  mod <- get(model)
+  
+  df <- cbind( constant = 1, mod@frame[, 2:(length(mod@frame) - length(mod@cnms))])
+  vars.mean <- data.frame(t(colMeans(df)))
+  vars <- names(df)
+  if (use.mode == TRUE) {
     for(i in seq(length(vars))) {
-        fake.data <- data.frame(x = c(min(df[vars[i]]), max(df[vars[i]])))
-        fd[i, "min"] <- min(df[vars[i]])
-        fd[i, "max"] <- max(df[vars[i]])            
-        if (sdX2 == TRUE & length(table(df[, vars[i]])) > 2) {
-            fake.data$x <- c(mean(df[, vars[i]]) - sd(df[, vars[i]]), 
-                             mean(df[, vars[i]]) + sd(df[, vars[i]]))
-            fd[i, "min"] <- mean(df[, vars[i]]) - sd(df[, vars[i]])
-            fd[i, "max"] <- mean(df[, vars[i]]) + sd(df[, vars[i]])  
-        }
-        names(fake.data) <- vars[i]
-        sims.t <- mod.sims[vars[i]]
-        pp <- t(qlogis(mean(mod@frame$change)) - fd[i, "mean"]*data.matrix(sims.t)) 
-        pp <- rbind(pp, pp)
-        pp <- plogis(pp + data.matrix(fake.data) %*% t(data.matrix(sims.t)))
-        diff <- pp[2,] - pp[1,]
-        
-        fd[i, 4] <- mean(diff)*100
-        fd[i, 5:6] <- quantile(diff, probs = c(0.025, 0.975))*100
+      tab <- table(df[, vars[i]])
+      if (length(tab) == 2) {
+        vars.mean[i] <- as.numeric(names(tab[which(tab == max(tab))]))
+      }
     }
-    return(fd)
+  }
+  fd <- data.frame(mean = t(vars.mean), min = NA, max = NA, fd = NA, fd.lb = NA, fd.ub = NA)
+  for(i in seq(length(vars))) {
+    fake.data <- data.frame(x = c(min(df[vars[i]]), max(df[vars[i]])))
+    fd[i, "min"] <- min(df[vars[i]])
+    fd[i, "max"] <- max(df[vars[i]])            
+    if (sdX2 == TRUE & length(table(df[, vars[i]])) > 2) {
+      fake.data$x <- c(mean(df[, vars[i]]) - sd(df[, vars[i]]), 
+                       mean(df[, vars[i]]) + sd(df[, vars[i]]))
+      fd[i, "min"] <- mean(df[, vars[i]]) - sd(df[, vars[i]])
+      fd[i, "max"] <- mean(df[, vars[i]]) + sd(df[, vars[i]])  
+    }
+    names(fake.data) <- vars[i]
+    sims.t <- mod.sims[vars[i]]
+    pp <- t(qlogis(mean(mod@frame$change)) - fd[i, "mean"]*data.matrix(sims.t)) 
+    pp <- rbind(pp, pp)
+    pp <- plogis(pp + data.matrix(fake.data) %*% t(data.matrix(sims.t)))
+    diff <- pp[2,] - pp[1,]
+    
+    fd[i, 4] <- mean(diff)*100
+    fd[i, 5:6] <- quantile(diff, probs = c(0.025, 0.975))*100
+  }
+  return(fd)
 }
 
 t1m4.fd.range <- glmer.logit.fd2("t1m4")
 t1m4.fd.sdX2 <- glmer.logit.fd2("t1m4", sdX2 = T)
 
 fd.cust <- function(model = NULL, iv = NULL, range = c(0, 1), digits=0) {
-    mod.sims <- sims.glmer(get(model))
-    mod <- get(model)
-    sims.t <- mod.sims[iv]
-    fake.data <- data.frame(iv = range)
-    pp <- t(qlogis(mean(mod@frame$change)) - mean(mod@frame[[iv]])*data.matrix(sims.t)) 
-    pp <- rbind(pp, pp)
-    pp <- plogis(pp + data.matrix(fake.data) %*% t(data.matrix(sims.t)))
-    diff <- pp[2,] - pp[1,]
-    fd <- mean(diff)*100
-    fd <- c(fd, quantile(diff, probs = c(0.025, 0.975))*100)
-    out <- paste(round(fd[1], digits), "percentage points (95\\% C.I.,", round(fd[2], digits), "to", round(fd[3], digits),"points)")
-    out
+  mod.sims <- sims.glmer(get(model))
+  mod <- get(model)
+  sims.t <- mod.sims[iv]
+  fake.data <- data.frame(iv = range)
+  pp <- t(qlogis(mean(mod@frame$change)) - mean(mod@frame[[iv]])*data.matrix(sims.t)) 
+  pp <- rbind(pp, pp)
+  pp <- plogis(pp + data.matrix(fake.data) %*% t(data.matrix(sims.t)))
+  diff <- pp[2,] - pp[1,]
+  fd <- mean(diff)*100
+  fd <- c(fd, quantile(diff, probs = c(0.025, 0.975))*100)
+  out <- paste(round(fd[1], digits), "percentage points (95\\% C.I.,", round(fd[2], digits), "to", round(fd[3], digits),"points)")
+  out
 }
 
 t1m4.fd <- rbind(data.frame(iv = row.names(t1m4.fd.sdX2)[c(6:8, 2:5)], 
-                          t1m4.fd.sdX2[c(6:8, 2:5), 4:6], 
-                          range = "Over 2 Standard Deviations",
-                          no = 1:length(row.names(t1m4.fd.sdX2)[-1])),
-               data.frame(iv = row.names(t1m4.fd.range)[c(6:8, 2:5)], 
-                          t1m4.fd.range[c(6:8, 2:5), 4:6], 
-                          range = "Over Full Range",
-                          no = 1:length(row.names(t1m4.fd.range)[-1])) 
-               )
+                            t1m4.fd.sdX2[c(6:8, 2:5), 4:6], 
+                            range = "Over 2 Standard Deviations",
+                            no = 1:length(row.names(t1m4.fd.sdX2)[-1])),
+                 data.frame(iv = row.names(t1m4.fd.range)[c(6:8, 2:5)], 
+                            t1m4.fd.range[c(6:8, 2:5), 4:6], 
+                            range = "Over Full Range",
+                            no = 1:length(row.names(t1m4.fd.range)[-1])) 
+)
 
 n.vars <- length(row.names(t1m4.fd.sdX2)[-1])
 
 fd.plot <- ggplot(data = t1m4.fd, aes(y = no, x = fd)) +
-    geom_point() + geom_errorbarh(aes(xmin = fd.lb, xmax = fd.ub, height=0)) +
-    ylab("") + xlab("") + theme_bw() + 
-    scale_y_reverse(breaks = 1:n.vars, labels = vars[c(5:7, 1:4)]) +
-    theme(legend.title=element_blank(), legend.position=c(.15, .95)) +
-    geom_vline(xintercept=c(0), linetype="dotted") + 
-    facet_grid(. ~ range, scales="free") +
-    scale_x_continuous(breaks = seq(-60, 50, by = 10))
+  geom_point() + geom_errorbarh(aes(xmin = fd.lb, xmax = fd.ub, height=0)) +
+  ylab("") + xlab("") + theme_bw() + 
+  scale_y_reverse(breaks = 1:n.vars, labels = vars[c(5:7, 1:4)]) +
+  theme(legend.title=element_blank(), legend.position=c(.15, .95)) +
+  geom_vline(xintercept=c(0), linetype="dotted") + 
+  facet_grid(. ~ range, scales="free") +
+  scale_x_continuous(breaks = seq(-60, 50, by = 10))
 
 fd.plot
 ```
 
+```{r all}
+m1 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
+                   log_party_age + 
+                   r_avg_vote + 
+                   cabinet_party_last + 
+                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   (1|cparty) + (1|election) + (1|country))
+
+m2 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
+                   log_party_age + 
+                   r_avg_vote + 
+                   cabinet_party_last + 
+                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   change:name_exp +
+                   (1|cparty) + (1|election) + (1|country))
+
+m3 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
+                   log_party_age + 
+                   r_avg_vote + 
+                   cabinet_party_last + 
+                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   change:r_avg_vote +
+                   (1|cparty) + (1|election) + (1|country))
+```
 
 
+```{r cem_all}
+library(cem)
+
+dat2 <- change_data2 %>%
+  mutate(country = as.factor(country),
+         change_big = as.numeric(change==1 & r_avg_vote > 6.75),
+         change_small = as.numeric(change==1 & r_avg_vote <= 6.75),
+         change_old = as.numeric(change==1 & name_exp > 1),
+         change_new = as.numeric(change==1 & r_avg_vote <= 1)) %>% 
+  as.data.frame()
+
+to_exclude1 <- c("vote", "vote_gain_abs", "vote_gain_rel", "year", "election", "election_pcy", "party", "cparty", "change", "country")
+
+to_exclude2 <- c("vote", "vote_gain_abs", "vote_gain_rel", "year", "election", "election_pcy", "party", "cparty", "country", "change", "change_big", "change_small", "change_new", "change_old")
+
+imb1 <- imbalance(group = change_data2$change, 
+                  data = dat2, 
+                  drop = to_exclude2)
+
+mat1 <- cem(treatment = "change", 
+            data = dat2, 
+            drop = to_exclude2, 
+            keep.all = TRUE)
+
+est1 <- att(mat1, 
+            vote_gain_abs ~ change +
+              log_party_age + 
+              r_avg_vote + 
+              cabinet_party_last + 
+              enep_lag + name_exp + elec_shock + pedersen_lag,
+            data = dat2,
+            model = "lme")
+```
+
+```{r cem_name_exp}
+mat2a <- cem(treatment = "change_old", 
+             data = dat2, 
+             drop = to_exclude2, 
+             keep.all = TRUE)
+
+est2a <- att(mat2a, 
+             vote_gain_abs ~ change_old +
+               log_party_age + 
+               r_avg_vote + 
+               cabinet_party_last + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+
+mat2b <- cem(treatment = "change_new", 
+             data = dat2, 
+             drop = c(to_exclude2, "cabinet_party_last"), 
+             keep.all = TRUE)
+
+est2b <- att(mat2b, 
+             vote_gain_abs ~ change_new +
+               log_party_age + 
+               r_avg_vote + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+```
+
+```{r cem_r_avg_vote}
+mat3a <- cem(treatment = "change_big", 
+             data = dat2, 
+             drop = to_exclude2, 
+             keep.all = TRUE)
+
+est3a <- att(mat3a, 
+             vote_gain_abs ~ change_big +
+               log_party_age + 
+               r_avg_vote + 
+               cabinet_party_last + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+
+mat3b <- cem(treatment = "change_small", 
+             data = dat2, 
+             drop = c(to_exclude2, "cabinet_party_last"), 
+             keep.all = TRUE)
+
+est3b <- att(mat3b, 
+             vote_gain_abs ~ change_small +
+               log_party_age + 
+               r_avg_vote + 
+               cabinet_party_last + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+```
 
 
 # References

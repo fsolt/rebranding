@@ -6,7 +6,7 @@ output:
     fig_caption: true
     latex_engine: pdflatex
     template: svm-latex-ms2.tex
-title: "Consequences of Party Re-labeling"
+title: "Do Voters Reward, Punish, or Ignore Party Relabeling?"
 thanks: "The paper's revision history and the materials needed to reproduce its analyses can be found [on Github here](http://github.com/fsolt/relabeling). Corresponding author: [frederick-solt@uiowa.edu](mailto:frederick-solt@uiowa.edu). Current version: `r format(Sys.time(), '%B %d, %Y')`."
 author:
 - name: Mi-son Kim
@@ -17,7 +17,7 @@ abstract: " "
 # keywords: "rebranding, behavior"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 fontsize: 11pt
-spacing: single
+spacing: double
 bibliography: \dummy{`r file.path(getwd(), 'relabeling')`}
 biblio-style: apsr
 citecolor: black
@@ -29,11 +29,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+# Data on Party Relabeling
+
 ```{r plot_setup, include=FALSE}
 library(tidyverse)
-library(here)
 
-load(here("/data/new_change_data.rda")) # run prepare_data.R to generate this file
+load(here::here("data","new_change_data.rda")) # run data_preparation.R to generate this file
 change_data <- new_change_data
 
 change_party <- change_data %>%
@@ -52,11 +53,14 @@ change_country <- change_party %>%
   summarise(changed_ever = mean(changed_ever))
 ```
 
-We identified Wolfram Nordsieck's [-@Nordsieck2014] \href{http://www.parties-and-elections.eu}{Parties and Elections in Europe} as the best available cross-national source on parties' names.  Norsieck has drawn on a host of country-specific resources to carefully identify the parties that contested national elections across the continent, the names they ran on, and their vote shares.  One disadvantage of this source, however, is that the information it contains is spread across many separate webpages and the information on party names appears only as blocks of text.  Nevertheless, taking advantage of the webscraping and text-handling capabilities of the `R` packages `XML` [@Lang2015] and `stringr` [@Wickham2015], we were able to collect and transform the data into a format suitable for analysis.  Our resulting dataset encompasses `r dim(change_party)[1]` parties in `r dim(change_election)[1]` different elections held in 31 European democracies (all 28 current EU members, plus Iceland, Norway, and Switzerland), for a total of `r dim(change_data)[1]` party-election observations.  Our variable of interest, relabeling, is dichotomous, taking on a value of one when a preexisting party runs with a different name than it used in the previous election and zero otherwise.^[As the example of the French Gaullists given above suggests, it may be the case that not all name changes are in fact equal: sometimes parties retain one or more words---or more rarely, the party acronym---as hints of their previous label to cue voters.  We leave exploration of these `partial' name changes for future research.]
+To test how voters react when parties choose to relabel themselves, we employ a revised and expanded version of the party relabeling dataset collected by @Kim2017.
+Those data were scraped from Wolfram Nordsieck's [http://www.parties-and-elections.eu](Parties and Elections in Europe) website, which in turn draws on a host of country-specific resources to carefully identify the parties that contested national elections across the continent, the names they ran on, and their vote shares.
+We re-scraped the @Nordsieck2018 website to include elections through 2017, and identified and corrected a few errors.
+As in @Kim2017, the variable of interest, relabeling, is dichotomous and takes on a value of one when a preexisting party runs with a different name than it used in the previous election and zero otherwise.
+The dataset encompasses `r dim(change_party)[1]` parties in `r dim(change_election)[1]` different elections held in 31 European democracies (the EU-27, plus Iceland, Norway, Switzerland, and the United Kingdom) during the years from 1945 through 2017, for a total of `r dim(change_data)[1]` party-election observations. 
 
 ```{r make_plots, include=FALSE}
 library(scales)
-library(ggplot2)
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   require(grid)
@@ -118,29 +122,34 @@ sum_plot_country <- ggplot(change_country, aes(x = changed_ever,
 
 ```
 
-`r round((1 - as.vector(table(change_party$change_total)/length(change_party$change_total))[1]) * 100)`\% of parties have relabeled themselves at least once, and more than `r round( (as.vector(table(change_party$change_total)/length(change_party$change_total))[4]) * 100)`\% have done so three or more times.
-
 ```{r sum_tables, include=FALSE}
 #Summary Statistics Tables
 table(change_party$change_total)/length(change_party$change_total)
 change_party[change_party$change_sum>=3,1:4]
 
 table(change_election$change_total)/length(change_election$change_total)
-change_election[change_election$change_sum>=3,1:4]
+change_election %>% 
+  filter(change_sum >=3) %>% 
+  select(country:change_total) %>% 
+  arrange(-change_sum)
 
 summary(change_country$changed_ever)
 ```
 
-```{r sum_plot, echo=FALSE, message=FALSE, fig.width=6, fig.height=6}
+```{r sum_plot, echo=FALSE, message=FALSE, fig.width=6, fig.height=4, fig.cap="\\label{fig:sum_plot}Party Relabeling Across European Democracies, 1945-2017."}
 
 multiplot(sum_plot_party, sum_plot_election, sum_plot_country, 
           layout = matrix(c(1, 2, 3, 3), nrow=2, byrow=F))
 ```
 
-
+These data are summarized in Figure \ref{fig:sum_plot}.
+Panel (a) indicates that `r round((1 - as.vector(table(change_party$change_total)/length(change_party$change_total))[1]) * 100)`\% of parties have relabeled themselves at least once, and more than `r round( (as.vector(table(change_party$change_total)/length(change_party$change_total))[4]) * 100)`\% have done so three or more times.
+Panel (b) shows that nearly two in five post-war elections in Europe included at least one party that was running with a new name for the first time.
+In fact, some ten elections have featured five or more parties running with new names: in Belgium, Estonia, Lithuania, Slovakia, Slovenia, and five times in Italy.
+Panel (c) underscores that relabeling is more common in some countries than in others.
+Six of the nine parties to contest elections in Sweden since 1945 have changed their names one or more times, but only one of Iceland's nineteen parties did so, the _Sameiningarflokkur alþýðu – Sósíalistaflokkurinn_ (the People's Unity Party – Socialist Party) when it became the _Alþýðubandalagið_ (the People's Alliance).
 
 ```{r gen_controls, include=FALSE}
-
 change_data1 <- change_data %>%
   group_by(country) %>% 
   mutate(first_cy = min(year),
@@ -199,6 +208,146 @@ change_data2 <- change_data1 %>%
 ```
 
 
+# Method
+
+With the difficulty of acquiring data on when European parties have chosen to compete under new names surmounted, the next obstacle is to estimate the causal effect of these changes on parties' electoral fortunes.
+
+This is not a straightforward task: @Kim2017 found support for arguments that parties that decide to relabel themselves are distinctly different from those that do not.
+Specifically, parties are more likely to relabel when they have competed with their existing brand name in fewer elections ('brand exposure'), when they have suffered a more disappointing result in the immediately preceding poll ('electoral shock'), and when the preceding election was characterized by higher volitility ('party-system weakness').
+Our replication of that article's analyses with our expanded dataset---which include some 40% more party-election observations than the original's---confirm these findings (the results of this replication are presented in this paper's Appendix).
+
+```{r all, include=FALSE}
+m1 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
+                   log_party_age + 
+                   r_avg_vote + 
+                   cabinet_party_last + 
+                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   (1|cparty) + (1|election) + (1|country))
+
+m2 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
+                   log_party_age + 
+                   r_avg_vote + 
+                   cabinet_party_last + 
+                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   change:name_exp +
+                   (1|cparty) + (1|election) + (1|country))
+
+m3 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
+                   log_party_age + 
+                   r_avg_vote + 
+                   cabinet_party_last + 
+                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   change:r_avg_vote +
+                   (1|cparty) + (1|election) + (1|country))
+```
+
+```{r cem_all, include=FALSE}
+library(cem)
+
+dat2 <- change_data2 %>%
+  mutate(country = as.factor(country),
+         change_big = as.numeric(change==1 & r_avg_vote > 6.75),
+         change_small = as.numeric(change==1 & r_avg_vote <= 6.75),
+         change_old = as.numeric(change==1 & name_exp > 1),
+         change_new = as.numeric(change==1 & r_avg_vote <= 1)) %>% 
+  as.data.frame()
+
+to_exclude1 <- c("vote", "vote_gain_abs", "vote_gain_rel", "year", "election", "election_pcy", "party", "cparty", "change", "country")
+
+to_exclude2 <- c("vote", "vote_gain_abs", "vote_gain_rel", "year", "election", "election_pcy", "party", "cparty", "country", "change", "change_big", "change_small", "change_new", "change_old")
+
+imb1 <- imbalance(group = change_data2$change, 
+                  data = dat2, 
+                  drop = to_exclude2)
+
+mat1 <- cem(treatment = "change", 
+            data = dat2, 
+            drop = to_exclude2, 
+            keep.all = TRUE)
+
+est1 <- att(mat1, 
+            vote_gain_abs ~ change +
+              log_party_age + 
+              r_avg_vote + 
+              cabinet_party_last + 
+              enep_lag + name_exp + elec_shock + pedersen_lag,
+            data = dat2,
+            model = "lme")
+```
+
+In other words, the treatment of a new party name is not assigned randomly among party-election observations, and our observational data therefore are not similar to those generated by an experiment.
+Far from it, actually: the multivariate imbalance measure $L_1$ [see @Iacus2012, 7] between party-elections with and without a new party name on the variables included in the @Kim2017 model is 98.1%, indicating that the distributions of these pre-treatment variables between these two groups of observations scarcely overlap.
+Such imbalance increases statistical bias and greater model dependence.
+We can, however, approximate an experiment by preprocessing the data with coarsened exact matching (CEM) so as to ensure that we compare relabeling parties directly with otherwise similar parties that did not adopt a new name [see @Iacus2012].
+
+
+```{r cem_name_exp, include=FALSE}
+mat2a <- cem(treatment = "change_old", 
+             data = dat2, 
+             drop = to_exclude2, 
+             keep.all = TRUE)
+
+est2a <- att(mat2a, 
+             vote_gain_abs ~ change_old +
+               log_party_age + 
+               r_avg_vote + 
+               cabinet_party_last + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+
+mat2b <- cem(treatment = "change_new", 
+             data = dat2, 
+             drop = c(to_exclude2, "cabinet_party_last"), 
+             keep.all = TRUE)
+
+est2b <- att(mat2b, 
+             vote_gain_abs ~ change_new +
+               log_party_age + 
+               r_avg_vote + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+```
+
+```{r cem_r_avg_vote, include=FALSE}
+mat3a <- cem(treatment = "change_big", 
+             data = dat2, 
+             drop = to_exclude2, 
+             keep.all = TRUE)
+
+est3a <- att(mat3a, 
+             vote_gain_abs ~ change_big +
+               log_party_age + 
+               r_avg_vote + 
+               cabinet_party_last + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+
+mat3b <- cem(treatment = "change_small", 
+             data = dat2, 
+             drop = c(to_exclude2, "cabinet_party_last"), 
+             keep.all = TRUE)
+
+est3b <- att(mat3b, 
+             vote_gain_abs ~ change_small +
+               log_party_age + 
+               r_avg_vote + 
+               cabinet_party_last + 
+               name_exp + elec_shock + pedersen_lag,
+             data = dat2,
+             model = "lme")
+```
+
+CEM allows researchers to trade off sample size for improved balance, reduced bias, and decreased model dependence.
+We employ the `cem` package for R [@Iacus2018] to perform the matching.
+The result is a dataset that retains 95 party-election observations of relabeling (out of an original 419), matched to 150 observations in which no relabeling occurred.
+
+\pagebreak
+# Appendix: Replication of @Kim2017
+
+
 ```{r replication, include=FALSE}
 library(lme4)
 
@@ -231,7 +380,9 @@ t1m3 <- glmer(as.formula(paste("change ~", base_model, "+ pedersen_lag +
 t1m4 <- glmer(as.formula(paste("change ~", base_model, "+ name_exp + elec_shock + pedersen_lag +
                 (1|cparty) + (1|election) + (1|country)")),
               data = change_data2, family = "binomial", nAGQ = 0)
+
 ```
+
 
 ```{r replication_table, results = 'asis', echo=FALSE, message=FALSE, warning=FALSE}
 library(texreg)
@@ -256,7 +407,7 @@ vars <- c("Party Age, Logged", "Party Size", "Incumbent Government", "Electoral 
 texreg::texreg(l=models.t1, label="T:models.t1", 
                caption="Predicting Party Relabeling, Cross-Classified Hierarchical Models",
                stars = c(0.001, 0.01, 0.05, 0.1), symbol="\\dagger",
-               caption.above=T, 
+               #caption.above=T, 
                custom.coef.names=c("Intercept", vars),  
                custom.gof.names = c(NA, "Party-Elections", "Parties", "Elections", "Countries", "Variance: Parties", "Variance: Elections", "Variance: Countries"),
                reorder.coef = c(6:8, 2:5, 1)
@@ -408,124 +559,5 @@ fd.plot <- ggplot(data = t1m4.fd, aes(y = no, x = fd)) +
 fd.plot
 ```
 
-```{r all}
-m1 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
-                   log_party_age + 
-                   r_avg_vote + 
-                   cabinet_party_last + 
-                   enep_lag + name_exp + elec_shock + pedersen_lag +
-                   (1|cparty) + (1|election) + (1|country))
-
-m2 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
-                   log_party_age + 
-                   r_avg_vote + 
-                   cabinet_party_last + 
-                   enep_lag + name_exp + elec_shock + pedersen_lag +
-                   change:name_exp +
-                   (1|cparty) + (1|election) + (1|country))
-
-m3 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
-                   log_party_age + 
-                   r_avg_vote + 
-                   cabinet_party_last + 
-                   enep_lag + name_exp + elec_shock + pedersen_lag +
-                   change:r_avg_vote +
-                   (1|cparty) + (1|election) + (1|country))
-```
-
-
-```{r cem_all}
-library(cem)
-
-dat2 <- change_data2 %>%
-  mutate(country = as.factor(country),
-         change_big = as.numeric(change==1 & r_avg_vote > 6.75),
-         change_small = as.numeric(change==1 & r_avg_vote <= 6.75),
-         change_old = as.numeric(change==1 & name_exp > 1),
-         change_new = as.numeric(change==1 & r_avg_vote <= 1)) %>% 
-  as.data.frame()
-
-to_exclude1 <- c("vote", "vote_gain_abs", "vote_gain_rel", "year", "election", "election_pcy", "party", "cparty", "change", "country")
-
-to_exclude2 <- c("vote", "vote_gain_abs", "vote_gain_rel", "year", "election", "election_pcy", "party", "cparty", "country", "change", "change_big", "change_small", "change_new", "change_old")
-
-imb1 <- imbalance(group = change_data2$change, 
-                  data = dat2, 
-                  drop = to_exclude2)
-
-mat1 <- cem(treatment = "change", 
-            data = dat2, 
-            drop = to_exclude2, 
-            keep.all = TRUE)
-
-est1 <- att(mat1, 
-            vote_gain_abs ~ change +
-              log_party_age + 
-              r_avg_vote + 
-              cabinet_party_last + 
-              enep_lag + name_exp + elec_shock + pedersen_lag,
-            data = dat2,
-            model = "lme")
-```
-
-```{r cem_name_exp}
-mat2a <- cem(treatment = "change_old", 
-             data = dat2, 
-             drop = to_exclude2, 
-             keep.all = TRUE)
-
-est2a <- att(mat2a, 
-             vote_gain_abs ~ change_old +
-               log_party_age + 
-               r_avg_vote + 
-               cabinet_party_last + 
-               name_exp + elec_shock + pedersen_lag,
-             data = dat2,
-             model = "lme")
-
-mat2b <- cem(treatment = "change_new", 
-             data = dat2, 
-             drop = c(to_exclude2, "cabinet_party_last"), 
-             keep.all = TRUE)
-
-est2b <- att(mat2b, 
-             vote_gain_abs ~ change_new +
-               log_party_age + 
-               r_avg_vote + 
-               name_exp + elec_shock + pedersen_lag,
-             data = dat2,
-             model = "lme")
-```
-
-```{r cem_r_avg_vote}
-mat3a <- cem(treatment = "change_big", 
-             data = dat2, 
-             drop = to_exclude2, 
-             keep.all = TRUE)
-
-est3a <- att(mat3a, 
-             vote_gain_abs ~ change_big +
-               log_party_age + 
-               r_avg_vote + 
-               cabinet_party_last + 
-               name_exp + elec_shock + pedersen_lag,
-             data = dat2,
-             model = "lme")
-
-mat3b <- cem(treatment = "change_small", 
-             data = dat2, 
-             drop = c(to_exclude2, "cabinet_party_last"), 
-             keep.all = TRUE)
-
-est3b <- att(mat3b, 
-             vote_gain_abs ~ change_small +
-               log_party_age + 
-               r_avg_vote + 
-               cabinet_party_last + 
-               name_exp + elec_shock + pedersen_lag,
-             data = dat2,
-             model = "lme")
-```
-
-
+\pagebreak
 # References

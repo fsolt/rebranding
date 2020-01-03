@@ -52,7 +52,8 @@ change_data <- import("data/change_data.rda") %>%
                !(country == "Latvia" & year < 1993) &
                !(country == "Malta" & year < 1947) &
                !(country == "Romania")) %>% 
-    mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II")) %>% 
+    mutate(election = str_replace(election, "\\*|(?<=\\d)I\\b", "") %>% str_replace("\\.1", "II"),
+           change = if_else(party == "AB (SF)" & country == "Iceland" & between(year, 1979, 1983), 0, change)) %>% 
     select(-prime_minister_last, -cabinet_party_last, -election_id, -enep1) 
 
 # Standardizing the coalition results in Cyprus's 1976 and Portugal's 1979 & 1980 elections

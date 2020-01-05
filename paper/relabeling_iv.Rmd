@@ -13,8 +13,8 @@ author:
   affiliation: University of Texas, Rio Grande Valley
 - name: Frederick Solt
   affiliation: University of Iowa 
-abstract: " "
-# keywords: "rebranding, behavior"
+abstract: "How do we understand the electoral consequences of party name changes or relabeling? Can a political party earn more votes if it sheds its antiquated label and adopts a more appealing one? Alternatively, does relabeling confuse voters or undermine the party’s previous reputation, which leads to a negative electoral outcome? Or does it have no significant effect at all? The dominant tone in the literature of political science is that party relabeling is and should be an anomaly, causing the topic of party relabeling to receive little attention, but we confirm here that relabeling has been fairly common among European parties in post-war elections. Further, using coarsened exact matching, we estimate the causal effect (local SATT) of relabeling to gain parties approximately one percentage point of vote share on average.  This suggests that, more often than not, the many parties that have chosen to shed old names have not squandered valuable brand assets, but instead have wisely taken advantage of the benefits of relabeling."
+keywords: "rebranding, behavior, political marketing"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 fontsize: 11pt
 spacing: double
@@ -27,6 +27,90 @@ endnote: no
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+Political parties are groups of politicians seeking to win government office under a common label [@Downs1957; @Hicken2009].
+By providing choices to the electorate such as ideological programs and candidates, parties serves as "brands" in the political market.
+Similar to corporate brands in the commercial market, party labels convey established reputation, serving as an information shortcut for voters [e.g., @Downs1957; @Campbell1960; @Aldrich1995; @Snyder2002].
+Also, party labels provide reassurance by promising standardization and coherence of the political products the parties offer through discipline over their members in the legislature [e.g., @Cox1993; @Snyder2000].
+In short, party labels give political parties meaningful identities and images as an organization.
+
+Given such informational assets carried by party labels, it seems reasonable to expect that party relabeling or name changes is or should be rare. In fact, this view is dominant in the literature. However, a close observation reveals that party relabeling is not as rare as commonly believed. Kim and Solt (2017) show that about 28% of the parties in Europe have relabeled themselves at least once since 1945. Moreover, slightly over 3% of parties have done so three or more times. Nearly a third of the democratic elections held across Europe since 1945 have included at least one party running under a new name, about one in six had two or more renamed parties, and nearly 4% of all elections had three or more renamed parties.
+
+How do we understand party relabeling?
+Specifically, what are the electoral consequences of party relabeling?
+Can a political party earn more votes if it sheds its antiquated label and adopts a more appealing one?
+Alternatively, does relabeling confuse voters or undermine the party’s previous reputation, which leads to a negative electoral outcome?
+Or does it have no significant effect at all?
+This study aims to answer these questions.
+
+
+# Parties as Vote-Maximizers
+
+Party relabeling refers to a party name change without any substantive change in terms of ideology, membership, and other organizational aspects. Given the dominance of the party-as-brand name thesis in the literature, how do we understand party relabeling? This study argues that parties undertake relabeling simply because they believe that it is electorally beneficial for them. Although acknowledging that parties function in complicated ways with multifaceted goals (see, Harmel and Janda 1994; Strom 1990), we believe that parties are primarily concerned with vote-maximization and thus, they adopt relabeling as a rebranding strategy to win more votes. This view is in line with Mayhew’s claim that politicians are single-minded seekers of reelection and parties are formed to serve their members’ electoral needs (Mayhew 1974). Even an ideologically-driven party can achieve its policy goal only with a certain degree of electoral viability as Downs (1957) famously claims that ideology is a means to an end, which is getting votes, not an end itself.
+
+The view that parties are fundamentally vote-seekers leads us to believe that parties change names for the purpose of maximizing the amount of votes that can possibly get in a given situation. For instance, if a party expects to suffer a serious electoral loss in an upcoming election, then it could decide to shed its existing label and create a new public face through relabeling in its endeavor to minimize its potential electoral loss. Considering that parties as organizations are conservative and strongly in favor of the status quo (Michels 1962), it is reasonable to assume that parties conduct relabeling because they see it either beneficial or inevitable at least (see, Harmel et al. 1995; Harmel and Janda 1994; Harmel and Tan 2003; Janda and Harmel 1995).
+
+Then, through what specific mechanism can relabeling contribute to the party’s vote-maximizing goal? By changing its name, the party can create a new public face or image more vividly presented to the electorate than can be done through other changes such as ideology and other organizational changes (Ishiyama and Marshall 2017). Through relabeling, the party can make a break with the past, signaling a change. When it suffered disastrous electoral losses or is mired with severe scandals, the party could shed its tainted label to dissociate itself from its previous reputation. Relatedly to this point, relabeling can effectively signal the party’s commitment to the new image or appeals it promises to make. In short, this study proposes to consider party relabeling as a rebranding strategy parties deliberately adopt primarily motivated to improve their electoral fortunes.
+
+# Theory
+Then, how do voters react to party relabeling?
+Would they reward, punish, or ignore name changes of parties? 
+Due to the dominant tone in the literature of political science that party relabeling is and should be an anomaly, the topic of party relabeling has received little attention.
+In order to address the questions properly, therefore, we decide to borrow some analytic tools from the discipline of business, which actively investigates the phenomenon of corporate, or brand name changes.
+This approach is justified by the fact that there is a growing level of consensus that electoral politics are analogous to market transactions.
+Accordingly, an increasing number of attempts are made to examine party strategy and voter behavior in elections using the marketing approaches [e.g., @Scammell1999; @Lees-Marshment2001; @Needham2006; @Nielsen2012].
+
+The literature in business suggests that a corporate or brand name is the essence of a firm’s identity.
+The firm’s identity is a long-term product and thus, it needs continuous, careful reputation maintenance effort.
+For this reason, name changes are considered one of the most radical or "revolutionary" rebranding strategies in the business literature [@Stuart2004].
+The risks associated with brand name changes include an identity crisis—loss of previous reputation and consumer confusion—and tremendous costs to promote and communicate the new name with consumers.
+Therefore, name changes are viewed as the firm’s serious managerial decision to "start-up" reputation building based on expectations that its benefit will overcome the risks and costs associated with such a decision.
+In short, relabeling is carried out when the "Reputation Start-Up Effect" is expected to be greater than the "Reputation Maintenance Effect" [@Tadelis1999].
+
+The literature suggests that the most salient effect of name changes is its signaling effect [see, e.g., @Liu2009; @Wu2010; @Gottner2011].
+By changing its name, the company conveys information to the market about changes in its vision, products or services and signals there is going to be significant changes in its future performance.
+By changing its name, the company conveys information to the market about changes in its vision, products or services and signals there is going to be significant changes in its future performance.
+Drawing on the signaling-effect argument of corporate and brand name changes, this study views that a political party changes its label primarily out of its effort to signal changes—--whether organizational, ideological, or merely cosmetic—--to the electorate.
+It is hoped that this signaling will help electorally, in turn.
+For example, parties suffering poor electoral performance are more likely to change their labels than those that performed well, presumably in an effort to dissociate themselves with the past and signal changes [@Kim2017].
+
+In other words, party relabeling could be adopted as an effective rebranding tactic.
+We expect that the "Reputation Start-Up Effect" outperforms the "Reputation Maintenance Effect" among the name-changing parties in this context.
+This leads us to make the following prediction.
+
+**Hypothesis 1**: Overall, party relabeling leads to positive abnormal returns in elections, which is not possible otherwise.
+
+It is noted that despite lots of similarities between the electoral and the consumer market transactions, there are some discrepancies in their nature.
+First of all, the market transactions between firms and consumers are continuous whereas those of parties and voters are more intermittent manifested through elections.
+Secondly, the level of public interest in and awareness of party brands in general and products and services provided by parties in particular is much lower than those of commercial firms.
+Because of these features of electoral politics, in order for the party to utilize relabeling as a signaling device successfully, the change needs to be conspicuous enough to awaken the awareness of the electorate.
+
+Similarly, we expect the duration of the "brand exposure" should create differing impacts in terms of the conspicuousness of name changes. 
+It is safe to argue that old labels have likely been imprinted in the memory of the electorate than relatively young labels, other considerations held constant.
+As a result, relabeling conducted by the former will create larger repercussions than by the latter in general.
+Accordingly, our brand exposure hypothesis follows:  
+
+**Hypothesis 2**: The positive effect of relabeling is more pronounced when older party names are abandoned than their newer counterparts.
+
+In line with the argument above, we predict that party size should matter.
+
+**Hypothesis 3**: The positive effect of relabeling is greater when it is undertaken by large, mainstream parties than by small parties.
+
+A large party by definition is the one that enjoys high publicity and thus once it changes its label, it is likely to attract more attention from the media and the public than does a small party.
+These predictions find more theoretical support if one considers the credibility of changes suggested by relabeling and the party’s capability to carry out its proposed promises.
+Signals provided by parties with better past performance are viewed credible more easily than the signals cued by poor performing parties.
+There is a high level of uncertainty over the credibility of information conveyed by poor performing parties.
+Successful past performance also indicates the party’s managerial capability to fulfill what is suggested by relabeling.
+Without having displayed the capability of getting things done, or without having been able to make the electorate believe in such a capability, it is not possible the party to maintain its mainstream status in politics over an extended period of time.
+
+In this context, we contend that party size and name age are good proxies for the credibility of signals cued by relabeling and the party’s capability to carry them out in the future.
+Large, mainstream parties, by definition, refer to parties with good past performance that have been able to garner widespread support continuously from the electorate.
+Thus, winning a significant vote/seat share captures the concepts of credibility and capability.
+In addition, older names provide more credible cues on future performance than younger ones simply because being exposed to the electorate for long, they have already provided sufficient information about their parties' managerial skills and capabilities.
+Newer party names, on the other hand, do not have this time-honored asset yet.
+Voters face a higher degree of uncertainty over what the signal means and how likely it is to be materialized in the future when newer parties are shed.
+For this reason, the signals provided by relabeling older names are perceived to be more credible and meaningful than those provided by abandoning newer ones.
+
 
 
 # Data on Party Relabeling
@@ -196,13 +280,14 @@ change_data2 <- change_data1 %>%
          vote_gain_abs = vote - prev_vote,
          vote_gain_rel = if_else(prev_vote==0, 1, vote/prev_vote),
          log_party_age = log1p(party_age),
-         elec_shock = elec_shock) %>% 
+         elec_shock = elec_shock,
+         lag_name_exp_p1 = lag(name_exp) + 1) %>% 
   ungroup() %>% 
   mutate(election = as.numeric(as.factor(paste(country, year)))) %>% 
   select(country, year, party, cparty, election, election_pcy,
          change, log_party_age, r_avg_vote, cabinet_party_last, 
-         enep_lag, 
-         name_exp, elec_shock, pedersen_lag, 
+         enep_lag, name_exp,
+         lag_name_exp_p1, elec_shock, pedersen_lag, 
          vote, prev_vote, vote_gain_abs, vote_gain_rel) %>% 
   filter(complete.cases(.)) 
 ```
@@ -211,32 +296,31 @@ change_data2 <- change_data1 %>%
 # Method
 
 With the difficulty of acquiring data on when European parties have chosen to compete under new names surmounted, the next obstacle is to estimate the causal effect of these changes on parties' electoral fortunes.
-
 This is not a straightforward task: @Kim2017 found support for arguments that parties that decide to relabel themselves are distinctly different from those that do not.
 Specifically, parties are more likely to relabel when they have competed with their existing brand name in fewer elections ('brand exposure'), when they have suffered a more disappointing result in the immediately preceding poll ('electoral shock'), and when the preceding election was characterized by higher volitility ('party-system weakness').
-Our replication of that article's analyses with our expanded dataset---which include some 40% more party-election observations than the original's---confirm these findings (the results of this replication are presented in this paper's Appendix).
+Our replication of that article's analyses with our expanded dataset---which include nearly one-fourth again as many party-election observations as the original's---provide additional support for those findings (the results of this replication are presented in this paper's Appendix).
 
 ```{r all, include=FALSE}
 m1 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
                    log_party_age + 
                    r_avg_vote + 
                    cabinet_party_last + 
-                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   enep_lag + lag_name_exp_p1 + elec_shock + pedersen_lag +
                    (1|cparty) + (1|election) + (1|country))
 
 m2 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
                    log_party_age + 
                    r_avg_vote + 
                    cabinet_party_last + 
-                   enep_lag + name_exp + elec_shock + pedersen_lag +
-                   change:name_exp +
+                   enep_lag + lag_name_exp_p1 + elec_shock + pedersen_lag +
+                   change:lag_name_exp_p1 +
                    (1|cparty) + (1|election) + (1|country))
 
 m3 <- lme4::lmer(data = change_data2, vote_gain_abs ~ change +
                    log_party_age + 
                    r_avg_vote + 
                    cabinet_party_last + 
-                   enep_lag + name_exp + elec_shock + pedersen_lag +
+                   enep_lag + lag_name_exp_p1 + elec_shock + pedersen_lag +
                    change:r_avg_vote +
                    (1|cparty) + (1|election) + (1|country))
 ```
@@ -246,10 +330,10 @@ library(cem)
 
 dat2 <- change_data2 %>%
   mutate(country = as.factor(country),
-         change_big = as.numeric(change==1 & r_avg_vote > 6.75),
-         change_small = as.numeric(change==1 & r_avg_vote <= 6.75),
-         change_old = as.numeric(change==1 & name_exp > 1),
-         change_new = as.numeric(change==1 & r_avg_vote <= 1)) %>% 
+         change_big = as.numeric(change==1 & r_avg_vote > 6.45),
+         change_small = as.numeric(change==1 & r_avg_vote <= 6.45),
+         change_old = as.numeric(change==1 & lag_name_exp_p1 >= 2),
+         change_new = as.numeric(change==1 & lag_name_exp_p1 < 2)) %>% 
   as.data.frame()
 
 to_exclude1 <- c("vote", "vote_gain_abs", "vote_gain_rel", "year", "election", "election_pcy", "party", "cparty", "change", "country")
@@ -270,16 +354,24 @@ est1 <- att(mat1,
               log_party_age + 
               r_avg_vote + 
               cabinet_party_last + 
-              enep_lag + name_exp + elec_shock + pedersen_lag,
+              enep_lag + lag_name_exp_p1 + elec_shock + pedersen_lag,
             data = dat2,
             model = "lme")
 ```
 
-In other words, the treatment of a new party name is not assigned randomly among party-election observations, and our observational data therefore are not similar to those generated by an experiment.
-Far from it, actually: the multivariate imbalance measure $L_1$ [see @Iacus2012, 7] between party-elections with and without a new party name on the variables included in the @Kim2017 model is 98.1%, indicating that the distributions of these pre-treatment variables between these two groups of observations scarcely overlap.
-Such imbalance increases statistical bias and greater model dependence.
+In other words, the treatment of a new party name is not assigned randomly among party-election observations, our observational data therefore are not similar to those generated by an experiment.
+Far from it, actually: the multivariate imbalance measure $L_1$ [see @Iacus2012, 7] between party-elections with and without a new party name on the variables included in the @Kim2017 model is 98%, indicating that the distributions of these pre-treatment variables between these two groups of observations scarcely overlap.
+Such imbalance increases statistical bias and model dependence, and differences in the vote shares of parties with new and old labels cannot be interpreted as causal effects.
 We can, however, approximate an experiment by preprocessing the data with coarsened exact matching (CEM) so as to ensure that we compare relabeling parties directly with otherwise similar parties that did not adopt a new name [see @Iacus2012].
 
+CEM allows researchers to trade off sample size for improved balance, reduced bias, and decreased model dependence.
+We employ the `cem` package for R [@Iacus2018] to perform the matching.
+The result is a dataset that retains 87 party-election observations of relabeling (out of an original 324), matched to 138 observations (out of an original 2878) in which no relabeling occurred.
+As there is no reasonable match for many, many cases of relabeling, our estimand will be only the _local_ sample average treatment on the treated (local _SATT_), the treatment effect averaged only over the subset of observations with a match given the available controls [see @Iacus2012, 5].
+
+Because coarsened exact matching proceeds first by binning ("coarsening") continuous control variables, some differences among treated and untreated observations remain, and it is appropriate to control for these remaining differences statistically [@Iacus2012, 4-5].
+We therefore employ linear mixed-effects models, with random effects estimated for each strata, and include all of the controls variables used in @Kim2017.
+To test Hypothesis 2 on the conditional effect of relabeling by the brand exposure of the discarded name and Hypothesis 3 on that by party size, we rely on splitting our sample at the median value of each of these variables.
 
 ```{r cem_name_exp, include=FALSE}
 mat2a <- cem(treatment = "change_old", 
@@ -292,7 +384,7 @@ est2a <- att(mat2a,
                log_party_age + 
                r_avg_vote + 
                cabinet_party_last + 
-               name_exp + elec_shock + pedersen_lag,
+               lag_name_exp_p1 + elec_shock + pedersen_lag,
              data = dat2,
              model = "lme")
 
@@ -305,7 +397,7 @@ est2b <- att(mat2b,
              vote_gain_abs ~ change_new +
                log_party_age + 
                r_avg_vote + 
-               name_exp + elec_shock + pedersen_lag,
+               lag_name_exp_p1 + elec_shock + pedersen_lag,
              data = dat2,
              model = "lme")
 ```
@@ -321,7 +413,7 @@ est3a <- att(mat3a,
                log_party_age + 
                r_avg_vote + 
                cabinet_party_last + 
-               name_exp + elec_shock + pedersen_lag,
+               lag_name_exp_p1 + elec_shock + pedersen_lag,
              data = dat2,
              model = "lme")
 
@@ -335,18 +427,52 @@ est3b <- att(mat3b,
                log_party_age + 
                r_avg_vote + 
                cabinet_party_last + 
-               name_exp + elec_shock + pedersen_lag,
+               lag_name_exp_p1 + elec_shock + pedersen_lag,
              data = dat2,
              model = "lme")
 ```
 
-CEM allows researchers to trade off sample size for improved balance, reduced bias, and decreased model dependence.
-We employ the `cem` package for R [@Iacus2018] to perform the matching.
-The result is a dataset that retains 95 party-election observations of relabeling (out of an original 419), matched to 150 observations in which no relabeling occurred.
+```{r results_plot, echo=FALSE, message=FALSE, fig.width=6, fig.height=4, fig.cap="\\label{fig:results_plot}Local Sample Average Treatment Effect of Party Relabeling on Vote Share"}
+extract_results <- function(est, model_name) {
+  tibble(term = "Relabeling",
+         estimate = est$att.model["Estimate", 2],
+         std.error = est$att.model["Std. Error", 2],
+         model = model_name)
+}
+
+bind_rows(
+  extract_results(est1, "Relabeling, All Matched Parties"),
+  extract_results(est2a, "Abandoning Older Brands"),
+  extract_results(est2b, "Abandoning Newer Brands"),
+  extract_results(est3a, "Larger Parties"),
+  extract_results(est3b, "Smaller Parties")
+) %>% 
+  dotwhisker::secret_weapon(var = "Relabeling") +
+  theme_bw() +
+  theme(legend.position="none") +
+  geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+  xlab("Difference in Vote Share (%)")
+
+```
+
+# Results
+
+The results are presented in Figure \ref{fig:results_plot}.
+They show that among all of the matched parties, relabeling had the effect of boosting vote share by nearly one percentage point, $.92\pm.09$ supporting Hypothesis 1.
+There is also support, albeit more modest, for Hypothesis 2.
+The median party name had been used twice previously.
+Among the 36 matched parties that abandoned names that had been used twice or more times, the vote share gain was $1.24\pm.28$, while for the 62 matched parties that abandoned a name used only once previously, the electoral benefit was only $.74\pm.15$.
+The difference between the two groups is $.50\pm.31$, which yields a one-tailed $p$-value (appropriate given the directional hypothesis) of .055.
+There is no support at all for Hypothesis 3.
+The 29 matched parties with average vote shares in the elections they had contested prior that were larger than the sample median, 6.45%, gained an average of $.92\pm.28$ percentage points by relabeling.
+The benefit of relabeling for the 68 matched smaller parties was $1.02\pm.09$ percentage points, a basically identical amount.
 
 \pagebreak
+\appendix
+\renewcommand\thefigure{A\arabic{figure}}  
+\renewcommand\thetable{A\arabic{table}} 
+\setcounter{figure}{0} 
 # Appendix: Replication of @Kim2017
-
 
 ```{r replication, include=FALSE}
 library(lme4)
@@ -405,17 +531,18 @@ vars <- c("Party Age, Logged", "Party Size", "Incumbent Government", "Electoral 
 
 # Three Theories
 texreg::texreg(l=models.t1, label="T:models.t1", 
-               caption="Predicting Party Relabeling, Cross-Classified Hierarchical Models",
+               caption="Predicting Party Relabeling, Cross-Classified Hierarchical Models, Replicating Kim and Solt (2017, 442, Table 1)",
                stars = c(0.001, 0.01, 0.05, 0.1), symbol="\\dagger",
                #caption.above=T, 
                custom.coef.names=c("Intercept", vars),  
                custom.gof.names = c(NA, "Party-Elections", "Parties", "Elections", "Countries", "Variance: Parties", "Variance: Elections", "Variance: Countries"),
-               reorder.coef = c(6:8, 2:5, 1)
+               reorder.coef = c(6:8, 2:5, 1),
+               float.pos = "h"
 )
 ```
 
 
-```{r replication_plot, echo=FALSE} 
+```{r replication_plot, echo=FALSE, fig.cap="\\label{fig:replication_plot}First Differences in Predicted Probability of Party Relabeling, Replicating Kim and Solt (2017, 443, Figure 2)."} 
 sims.glmer <- function(mod = NULL, n = 10000, seed = 324) {
   # H/T http://www.quantumforest.com/2011/10/simulating-data-following-a-given-covariance-structure/
   varcov <- matrix(vcov(mod)@x, nrow = vcov(mod)@Dim[1])
@@ -558,6 +685,7 @@ fd.plot <- ggplot(data = t1m4.fd, aes(y = no, x = fd)) +
 
 fd.plot
 ```
+
 
 \pagebreak
 # References
